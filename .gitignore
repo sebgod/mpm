@@ -3,6 +3,9 @@ Mercury/
 *.err
 *.init
 *.dll
+mpm_packages
+Mercury.modules
+*.jar
 *.exe
 *.a
 *.so
