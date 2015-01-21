@@ -1,1 +1,1 @@
-MCFLAGS := --use-grade-subdirs
+MCFLAGS := --no-verbose-make --use-grade-subdirs
