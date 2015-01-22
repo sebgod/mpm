@@ -5,13 +5,16 @@ INSTALL_PREFIX = $(USER_MPM_DIR)/mpm_packages
 META_INFO_TMPL = $(PKG_ROOT)/share/meta_info.template
 
 .PHONY: default
-default: mpm.exe
+default: mpm$(EXE_EXT)
+
+# do not use CC for executables (see rule %: %.meta_info.m)
+.SUFFIXES:
 
 SEMVER_REGEX      := "s/^version[(]\"([0-9]+[.][0-9]+[.][0-9]+)([-][0-9a-zA-Z_])?.+/\1/p"
 PKG_LIBNAME_DEPS_REGEX := "s/^dep[(]\"lib([^/]+)[/].+/\1/p"
 PKG_LIB_DEPS_REGEX := "s/^dep[(]\"(lib[^\"]+)[\"].+/\1/p"
 
-%.exe: %.meta_info.m
+%$(EXE_EXT): %.meta_info.m
 	@$(eval $*_LIBNAME_DEPS := \
 		$(shell $(EXTRACT) -e $(PKG_LIBNAME_DEPS_REGEX) $(PKG_ROOT)/$*.package))
 	@$(eval $*_LOCAL_DEPS := \
@@ -58,10 +61,10 @@ realclean:
 	@echo MMC mpm.realclean
 	@$(MMC) --make mpm.realclean
 	@echo RM Mercury code directory
-	@$(RM) -rf Mercury
+	@$(DEL_DIR) Mercury
 	@echo RM *.err
-	@$(RM) -f $(wildcard *.err)
+	@$(DEL_FILE) $(wildcard *.err)
 	@echo RM *.mh
-	@$(RM) -f $(wildcard *.mh)
+	@$(DEL_FILE) $(wildcard *.mh)
 	@echo RM *.meta_info.m
-	@$(RM) -f $(wildcard *.meta_info.m)
+	@$(DEL_FILE) $(wildcard *.meta_info.m)

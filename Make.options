@@ -1,6 +1,37 @@
-MMC := mmc
+# (quasi)-standard Unix tools
 CAT := cat
+CURL := curl
+CURL_FLAGS := -s -L
+DIFF := diff
+DIFF_FLAGS := -u
+HARDLINK := cp -l -u -f
+KILLALL := killall
+KILLALL_FORCE := killall -9
+MMC := mmc
 SED := sed
+SLEEP := sleep
 RM  := /bin/rm
-# GNU sed is required for now
+
+# Extensions
+EXE_EXT :=
+# TODO: This needs to be determined from $(CC_TYPE)
+OBJ_EXT := .o
+
+# composed common variables
+# TODO: GNU sed is required for now
+CC  := $(shell $(MMC) --output-cc)
+CC_TYPE := $(shell $(MMC) --output-cc-type)
 EXTRACT := $(SED) -n -r
+DEL_DIR  := $(RM) -fR
+DEL_FILE := $(RM) -f
+
+# Windows specific overrides
+ifdef WINDIR
+	# The expected outputs do not use CRLF line endings,
+	# so if we are on Windows we need to account for this.
+	# TODO: We assume the use of GNU diff if this is the case.
+    DIFF_FLAGS += --strip-trailing-cr
+    EXE_EXT := .exe
+    KILLALL := taskkill -t -im
+    KILLALL_FORCE := taskkill -F  -im
+endif
