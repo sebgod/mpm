@@ -4,18 +4,25 @@ USER_MPM_DIR = $(HOME)/.mpm
 INSTALL_PREFIX = $(USER_MPM_DIR)/mpm_packages
 META_INFO_TMPL = $(PKG_ROOT)/share/meta_info.template
 
-MPM_LOCAL_DEPS := libmercury_mpm/0.*.*
-MPM_LOCAL_LIBS := $(foreach DEP,$(MPM_LOCAL_DEPS),$(shell echo $(DEP) | $(EXTRACT) -e $(PKG_LIBNAME_REGEX)))
-MPM_DEPS := $(foreach LIB,$(MPM_LOCAL_LIBS),lib$(LIB).local)
-
 .PHONY: default
 default: mpm.exe
 
-%.exe: %.meta_info.m $(MPM_DEPS)
-	@echo MMC --make $* --ml-local $(MPM_LOCAL_DEPS)
+SEMVER_REGEX      := "s/^version[(]\"([0-9]+[.][0-9]+[.][0-9]+)([-][0-9a-zA-Z_])?.+/\1/p"
+PKG_LIBNAME_DEPS_REGEX := "s/^dep[(]\"lib([^/]+)[/].+/\1/p"
+PKG_LIB_DEPS_REGEX := "s/^dep[(]\"(lib[^\"]+)[\"].+/\1/p"
+
+%.exe: %.meta_info.m
+	@$(eval $*_LIBNAME_DEPS := \
+		$(shell $(EXTRACT) -e $(PKG_LIBNAME_DEPS_REGEX) $(PKG_ROOT)/$*.package))
+	@$(eval $*_LOCAL_DEPS := \
+		$(shell $(EXTRACT) -e $(PKG_LIB_DEPS_REGEX) $(PKG_ROOT)/$*.package))
+	@# XXX: Maybe have to serialise this call (inter-lib dependencies)
+	@echo MAKE $(foreach LIB,$($*_LIBNAME_DEPS),lib$(LIB).local )
+	@$(MAKE) $(foreach LIB,$($*_LIBNAME_DEPS),lib$(LIB).local )
+	@echo MMC --make $*
 	@$(MMC) --make $* \
-		$(foreach DEP,$(MPM_LOCAL_DEPS),--mld $(INSTALL_PREFIX)/$(DEP)/lib/mercury) \
-		$(foreach LIB,$(MPM_LOCAL_LIBS),--ml $(LIB))
+		$(foreach DEP,$($*_LOCAL_DEPS),--mld $(INSTALL_PREFIX)/$(DEP)/lib/mercury) \
+		$(foreach LIB,$($*_LIBNAME_DEPS),--ml $(LIB))
 
 lib%.local: %.meta_info.m Mercury.modules
 	@echo "MMC --install-prefix=$(INSTALL_PREFIX) --make lib$*.install"
