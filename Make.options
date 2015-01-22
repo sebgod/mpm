@@ -4,6 +4,7 @@ CURL := curl
 CURL_FLAGS := -s -L
 DIFF := diff
 DIFF_FLAGS := -u
+GIT := git
 HARDLINK := cp -l -u -f
 KILLALL := killall
 KILLALL_FORCE := killall -9

@@ -6,7 +6,7 @@
 
 :- import_module pair.
 
-:- pred revision(string::out) is det.
+:- pred revision(string::out, string::out) is det.
 
 :- pred version(string::out) is det.
 
@@ -14,7 +14,7 @@
 
 :- implementation.
 
-revision("<REVISION>").
+revision("<REVISION_SHORT>", "<REVISION_LONG>").
 
 :- pred dep(string::out) is multi.
 
