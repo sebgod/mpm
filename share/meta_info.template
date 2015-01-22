@@ -2,9 +2,13 @@
 
 :- interface.
 
+:- import_module pair.
+
 :- pred revision(string::out) is det.
 
 :- pred version(string::out) is det.
+
+:- pred author(pair(string)::out) is det.
 
 :- implementation.
 
@@ -12,5 +16,7 @@ revision("<REVISION>").
 
 :- pred dep(string::out) is multi.
 
+dep(""). % these are dummies to suppress the multi warning.
 dep("").
-dep("").
+
+author("<AUTHOR_NAME>"-"<AUTHOR_EMAIL>").
