@@ -6,7 +6,7 @@ META_INFO_TMPL = $(PKG_ROOT)/share/meta_info.template
 
 MPM_LOCAL_DEPS := libmercury_mpm/0.*.*
 MPM_LOCAL_LIBS := $(foreach DEP,$(MPM_LOCAL_DEPS),$(shell echo $(DEP) | $(EXTRACT) -e $(PKG_LIBNAME_REGEX)))
-MPM_DEPS := $(patsubst %,%.lib_local,$(MPM_LOCAL_LIBS))
+MPM_DEPS := $(foreach LIB,$(MPM_LOCAL_LIBS),lib$(LIB).local)
 
 .PHONY: default
 default: mpm
@@ -17,7 +17,7 @@ mpm: $(MPM_DEPS)
 		$(foreach DEP,$(MPM_LOCAL_DEPS),--mld $(INSTALL_PREFIX)/$(DEP)/lib/mercury) \
 		$(foreach LIB,$(MPM_LOCAL_LIBS),--ml $(LIB))
 
-%.lib_local: %.meta_info.m Mercury.modules
+lib%.local: %.meta_info.m Mercury.modules
 	@echo "MMC --install-prefix=$(INSTALL_PREFIX) --make lib$*.install"
 	@$(MMC) --install-prefix="$(INSTALL_PREFIX)/lib$*/$(shell $(EXTRACT) -e $(SEMVER_REGEX) $<)" \
 		--make lib$*.install
