@@ -1,5 +1,7 @@
 include ../Make.options
 PKG_ROOT =..
+USER_MPM_DIR = $(HOME)/.mpm
+INSTALL_PREFIX = $(USER_MPM_DIR)/mpm_packages
 META_INFO_TMPL = $(PKG_ROOT)/share/meta_info.template
 
 MPM_LOCAL_DEPS := libmercury_mpm/0.*.*
@@ -12,12 +14,12 @@ default: mpm
 mpm: $(MPM_DEPS)
 	@echo MMC --make $@ --ml-local $(MPM_LOCAL_DEPS)
 	@$(MMC) --make $@ \
-		$(foreach DEP,$(MPM_LOCAL_DEPS),--mld $(PKG_ROOT)/mpm_packages/$(DEP)/lib/mercury) \
+		$(foreach DEP,$(MPM_LOCAL_DEPS),--mld $(INSTALL_PREFIX)/$(DEP)/lib/mercury) \
 		$(foreach LIB,$(MPM_LOCAL_LIBS),--ml $(LIB))
 
 %.lib_local: %.meta_info.m Mercury.modules
-	@echo "MMC --install-prefix=$(PKG_ROOT)/mpm_packages/lib$*/VERSION --make lib$*.install"
-	@$(MMC) --install-prefix="$(PKG_ROOT)/mpm_packages/lib$*/$(shell $(EXTRACT) -e $(SEMVER_REGEX) $<)" \
+	@echo "MMC --install-prefix=$(INSTALL_PREFIX)/lib$*/VERSION --make lib$*.install"
+	@$(MMC) --install-prefix="$(INSTALL_PREFIX)/lib$*/$(shell $(EXTRACT) -e $(SEMVER_REGEX) $<)" \
 		--make lib$*.install
 
 Mercury.modules: $(wildcard *.m)
