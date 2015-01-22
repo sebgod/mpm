@@ -1,4 +1,4 @@
-% vim: ft=mercury ff=unix sw=4 et
+% vim: ft=mercury ff=unix ts=4 sw=4 et
 
 :- module <MODULE>.meta_info.
 
