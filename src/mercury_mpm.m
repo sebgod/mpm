@@ -16,6 +16,7 @@
 
 :- include_module mercury_mpm.cli.
 :- include_module mercury_mpm.meta_info.
+:- include_module mercury_mpm.resource.
 
 %----------------------------------------------------------------------------%
 
