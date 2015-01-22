@@ -12,14 +12,14 @@ GIT_REVISION_LONG  := $(shell $(GIT) describe --tags 2>/dev/null || \
 REVISION_SHORT := $(GIT_REVISION_SHORT)
 REVISION_LONG  := $(GIT_REVISION_LONG)
 
-%$(EXE_EXT): %.meta_info.m
+%$(EXE_EXT): %.meta_info.m Mercury.modules
 	@$(eval $*_LIBNAME_DEPS := \
 		$(shell $(EXTRACT) -e $(PKG_LIBNAME_DEPS_REGEX) $(PKG_ROOT)/$*.package))
 	@$(eval $*_LOCAL_DEPS := \
 		$(shell $(EXTRACT) -e $(PKG_LIB_DEPS_REGEX) $(PKG_ROOT)/$*.package))
 	@# XXX: Maybe have to serialise this call (inter-lib dependencies)
-	@echo MAKE $(foreach LIB,$($*_LIBNAME_DEPS),lib$(LIB).local )
-	@$(MAKE) $(foreach LIB,$($*_LIBNAME_DEPS),lib$(LIB).local )
+	@echo MAKE $(foreach LIB,$($*_LIBNAME_DEPS),lib$(LIB).local)
+	@$(MAKE) $(foreach LIB,$($*_LIBNAME_DEPS),lib$(LIB).local)
 	@echo MMC --make $*
 	@$(MMC) --make $* \
 		$(foreach DEP,$($*_LOCAL_DEPS),--mld $(INSTALL_PREFIX)/$(DEP)/lib/mercury) \
