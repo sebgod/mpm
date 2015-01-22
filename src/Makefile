@@ -1,5 +1,6 @@
 include ../Make.options
-PKG_ROOT := ".."
+PKG_ROOT =..
+META_INFO_TMPL = $(PKG_ROOT)/share/meta_info.template
 
 MPM_LOCAL_DEPS := libmercury_mpm/0.*.*
 MPM_LOCAL_LIBS := $(foreach DEP,$(MPM_LOCAL_DEPS),$(shell echo $(DEP) | $(EXTRACT) -e $(PKG_LIBNAME_REGEX)))
@@ -7,9 +8,6 @@ MPM_DEPS := $(patsubst %,%.lib_local,$(MPM_LOCAL_LIBS))
 
 .PHONY: default
 default: mpm
-	@echo $(MPM_LOCAL_DEPS)
-	@echo $(MPM_LOCAL_LIBS)
-	@echo $(MPM_DEPS)
 
 mpm: $(MPM_DEPS)
 	@echo MMC --make $@ --ml-local $(MPM_LOCAL_DEPS)
@@ -27,9 +25,9 @@ Mercury.modules: $(wildcard *.m)
 	@$(MMC) -f $^
 
 .PRECIOUS: %.meta_info.m
-%.meta_info.m: $(PKG_ROOT)/lib%.package lib_meta_info.template
+%.meta_info.m: $(PKG_ROOT)/lib%.package $(META_INFO_TMPL)
 	@echo GEN $*.meta_info.m
-	@$(SED) -e "s/<MODULE>/$*/g" < meta_info.template >$@
+	@$(SED) -e "s/<MODULE>/$*/g" < $(META_INFO_TMPL) >$@
 	@$(CAT) $< >>$@
 
 .PHONY: clean
@@ -52,4 +50,4 @@ realclean:
 	@echo RM *.mh
 	@$(RM) -f $(wildcard *.mh)
 	@echo RM *.meta_info.m
-	@$(RM) -f $(wildcard *.*_meta_info.m)
+	@$(RM) -f $(wildcard *.meta_info.m)
