@@ -1,6 +1,7 @@
 MMC := mmc
+CAT := cat
 SED := sed
 RM  := /bin/rm
 SEMVER_REGEX     := "s/^version[(]\"([0-9]+[.][0-9]+[.][0-9]+)([-][0-9a-zA-Z_])?.+/\1/p"
-PKG_NAME_REGEX   := "s/([^/]+)[/].+/\1/p"
-EXTRACT := $(SED) -n -r -e
+PKG_LIBNAME_REGEX   := "s/lib([^/]+)[/].+/\1/p"
+EXTRACT := $(SED) -n -r
