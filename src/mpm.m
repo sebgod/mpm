@@ -15,6 +15,8 @@
 
 :- interface.
 
+:- include_module mpm.meta_info.
+
 :- import_module io.
 
 %----------------------------------------------------------------------------%

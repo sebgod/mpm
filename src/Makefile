@@ -9,11 +9,11 @@ MPM_LOCAL_LIBS := $(foreach DEP,$(MPM_LOCAL_DEPS),$(shell echo $(DEP) | $(EXTRAC
 MPM_DEPS := $(foreach LIB,$(MPM_LOCAL_LIBS),lib$(LIB).local)
 
 .PHONY: default
-default: mpm
+default: mpm.exe
 
-mpm: $(MPM_DEPS)
-	@echo MMC --make $@ --ml-local $(MPM_LOCAL_DEPS)
-	@$(MMC) --make $@ \
+%.exe: %.meta_info.m $(MPM_DEPS)
+	@echo MMC --make $* --ml-local $(MPM_LOCAL_DEPS)
+	@$(MMC) --make $* \
 		$(foreach DEP,$(MPM_LOCAL_DEPS),--mld $(INSTALL_PREFIX)/$(DEP)/lib/mercury) \
 		$(foreach LIB,$(MPM_LOCAL_LIBS),--ml $(LIB))
 
@@ -27,7 +27,12 @@ Mercury.modules: $(wildcard *.m)
 	@$(MMC) -f $^
 
 .PRECIOUS: %.meta_info.m
-%.meta_info.m: $(PKG_ROOT)/lib%.package $(META_INFO_TMPL)
+%.meta_info.m :: $(PKG_ROOT)/lib%.package $(META_INFO_TMPL)
+	@echo GEN $*.meta_info.m
+	@$(SED) -e "s/<MODULE>/$*/g" < $(META_INFO_TMPL) >$@
+	@$(CAT) $< >>$@
+
+%.meta_info.m :: $(PKG_ROOT)/%.package $(META_INFO_TMPL)
 	@echo GEN $*.meta_info.m
 	@$(SED) -e "s/<MODULE>/$*/g" < $(META_INFO_TMPL) >$@
 	@$(CAT) $< >>$@

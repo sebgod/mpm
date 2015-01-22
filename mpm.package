@@ -1,3 +1,3 @@
-target(executable).
 version("0.1.0").
-dep(libmercury_mpm, "0.*.*").
+
+dep("libmercury_mpm/0.*.*").

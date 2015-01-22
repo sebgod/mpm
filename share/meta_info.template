@@ -1,6 +1,16 @@
 :- module <MODULE>.meta_info.
+
 :- interface.
+
 :- pred revision(string::out) is det.
+
 :- pred version(string::out) is det.
+
 :- implementation.
+
 revision("<REVISION>").
+
+:- pred dep(string::out) is multi.
+
+dep("").
+dep("").
