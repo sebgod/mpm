@@ -1,3 +1,5 @@
+% vim: ft=mercury sw=4 et
+
 :- module <MODULE>.meta_info.
 
 :- interface.
