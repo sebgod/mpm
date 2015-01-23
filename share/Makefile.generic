@@ -11,6 +11,7 @@ GIT_REVISION_LONG  := $(shell $(GIT) describe --tags 2>/dev/null || \
 	$(GIT) rev-parse HEAD)
 REVISION_SHORT := $(GIT_REVISION_SHORT)
 REVISION_LONG  := $(GIT_REVISION_LONG)
+TIMESTAMP      := $(shell $(DATE))
 
 %$(EXE_EXT): %.meta_info.m Mercury.modules
 	@$(eval $*_LIBNAME_DEPS := \
@@ -44,6 +45,7 @@ META_INFO_TMPL_COMMON_REPLACE = $(SED)             \
         -e "s/<AUTHOR_EMAIL>/$(AUTHOR_EMAIL)/"     \
         -e "s/<REVISION_SHORT>/$(REVISION_SHORT)/" \
         -e "s/<REVISION_LONG>/$(REVISION_LONG)/"   \
+        -e "s/<TIMESTAMP>/$(TIMESTAMP)/"           \
         < $(META_INFO_TMPL)  >$@                && \
            $(CAT) $<         >>$@
 

@@ -2,6 +2,7 @@
 CAT := cat
 CURL := curl
 CURL_FLAGS := -s -L
+DATE := date
 DIFF := diff
 DIFF_FLAGS := -u
 GIT := git
