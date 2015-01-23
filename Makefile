@@ -8,6 +8,9 @@ default:
 runtests:
 	cd tests && $(MAKE) runtests
 
+.PHONY: distclean
+distclean: realclean
+
 .PHONY: realclean
 realclean:
 	cd src && $(MAKE) realclean
