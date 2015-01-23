@@ -15,16 +15,12 @@ TIMESTAMP      := $(shell $(DATE))
 
 # Build the local version of the library if provided by this package.
 # This is ensured by the meta_info.m rules, which depends on lib%.package
-# TODO: We need a catch-all lib% rule if we want to build external libs.
 lib%: %.meta_info.m Mercury.modules
 	@$(eval lib$*_VERSION := \
 		$(shell $(EXTRACT) -e $(SEMVER_REGEX) $<))
 	@echo MMC --install-prefix=$(INSTALL_PREFIX) --make lib$*.install
 	@$(MMC) --install-prefix="$(INSTALL_PREFIX)/lib$*/$(lib$*_VERSION)" \
 		--make lib$*.install
-
-lib%:
-	@echo [TODO] GET external library $*
 
 Mercury.modules: $(wildcard *.m)
 	@echo "MMC -f $^"
