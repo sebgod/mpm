@@ -36,6 +36,13 @@
     %
 :- pred version(string::out) is det.
 
+    % src_dir(Dir):
+    %
+    % `Dir' is the directory where the package's source code resides,
+    % this will be ``src'' by default.
+    %
+:- pred src_dir(string::out) is det.
+
 %----------------------------------------------------------------------------%
 
 :- implementation.
@@ -44,11 +51,22 @@ author("<AUTHOR_NAME>"-"<AUTHOR_EMAIL>").
 
 revision("<REVISION_SHORT>", "<REVISION_LONG>").
 
+version("<VERSION>").
+
+src_dir("<SRC_DIR>").
+
+:- pred contrib(pair(string)::out) is multi.
+
+contrib(""-""). % these are dummies to suppress a determinism warning.
+contrib(""-""). % two dummy entries ensures that `contrib'/1 is `multi'.
+
 :- pred dep(string::out) is multi.
 
-dep(""). % these are dummies to suppress determinism warning.
+dep(""). % these are dummies to suppress a determinism warning.
 dep(""). % two dummy entries ensures that `dep'/1 is `multi'.
 
 %----------------------------------------------------------------------------%
 % NOTE: No `:- end_module' directive at 'EOF', since the build process will
 % append possible `dep'/1 clauses and others here.
+%----------------------------------------------------------------------------%
+

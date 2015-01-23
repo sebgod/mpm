@@ -1,11 +1,26 @@
+# vim: ft=make ts=4 sw=4 ff=unix noet
 # do not use CC for executables (see rule %: %.meta_info.m)
 .SUFFIXES:
 
-SEMVER_REGEX := "s/^version[(]\"([0-9]+[.][0-9]+[.][0-9]+)([-][0-9a-zA-Z_])?.+/\1/p"
-PKG_LIBNAME_DEPS_REGEX := "s/^dep[(]\"lib([^/]+)[/].+/\1/p"
-PKG_LIBVER_DEPS_REGEX  := "s/^dep[(]\"(lib[^\"]+)[\"].+/\1/p"
+PKG_VER_RE := "s/^version[(]\"([0-9]+[.][0-9]+[.][0-9]+)([-][0-9a-zA-Z_])?.+/\1/p"
+PKG_LIBNAME_DEPS_RE := "s/^dep[(]\"lib([^/]+)[/].+/\1/p"
+PKG_LIBVER_DEPS_RE  := "s/^dep[(]\"(lib[^\"]+)[\"].+/\1/p"
+
+PKG_MULTI_OPS    := dep|contrib
+PKG_MULTI_OPS_RE := "/^($(PKG_MULTI_OPS))[(]([^)]+)[)].+/p"
+PKG_VARS    := version|src_dir
+PKG_VARS_RE := "s/($(PKG_VARS))[(]\"([^\"]+)[\"][)].+/-e s\/<\1>\/\2\/i/p"
+
 AUTHOR_NAME  := $(GIT_AUTHOR_NAME)
+ifndef AUTHOR_NAME
+    AUTHOR_NAME := $(shell $(GIT) config --get user.name)
+endif
+
 AUTHOR_EMAIL := $(GIT_AUTHOR_EMAIL)
+ifndef AUTHOR_EMAIL
+    AUTHOR_EMAIL := $(shell $(GIT) config --get user.email)
+endif
+
 GIT_REVISION_SHORT := $(shell $(GIT) rev-parse --short HEAD 2>/dev/null)
 GIT_REVISION_LONG  := $(shell $(GIT) describe --tags 2>/dev/null || \
 	$(GIT) rev-parse HEAD)
@@ -17,7 +32,7 @@ TIMESTAMP      := $(shell $(DATE))
 # This is ensured by the meta_info.m rules, which depends on lib%.package
 lib%: %.meta_info.m Mercury.modules
 	@$(eval lib$*_VERSION := \
-		$(shell $(EXTRACT) -e $(SEMVER_REGEX) $<))
+		$(shell $(EXTRACT) -e $(PKG_VER_RE) $<))
 	@echo MMC --install-prefix=$(INSTALL_PREFIX) --make lib$*.install
 	@$(MMC) --install-prefix="$(INSTALL_PREFIX)/lib$*/$(lib$*_VERSION)" \
 		--make lib$*.install
@@ -28,15 +43,17 @@ Mercury.modules: $(wildcard *.m)
 
 # generating meta_info.m for package information available at compile time
 .PRECIOUS: %.meta_info.m
-META_INFO_TMPL_COMMON_REPLACE = $(SED)             \
-        -e "s/<MODULE>/$*/g"                       \
-        -e "s/<AUTHOR_NAME>/$(AUTHOR_NAME)/"       \
-        -e "s/<AUTHOR_EMAIL>/$(AUTHOR_EMAIL)/"     \
-        -e "s/<REVISION_SHORT>/$(REVISION_SHORT)/" \
-        -e "s/<REVISION_LONG>/$(REVISION_LONG)/"   \
-        -e "s/<TIMESTAMP>/$(TIMESTAMP)/"           \
-        < $(META_INFO_TMPL)  >$@                && \
-           $(CAT) $<         >>$@
+META_INFO_TMPL_COMMON_REPLACE = $(SED)               \
+    `$(EXTRACT) -e $(PKG_VARS_RE) $<`                \
+    -e "s/<MODULE>/$*/g"                             \
+    -e "s/<AUTHOR_NAME>/$(AUTHOR_NAME)/"             \
+    -e "s/<AUTHOR_EMAIL>/$(AUTHOR_EMAIL)/"           \
+    -e "s/<REVISION_SHORT>/$(REVISION_SHORT)/"       \
+    -e "s/<REVISION_LONG>/$(REVISION_LONG)/"         \
+    -e "s/<TIMESTAMP>/$(TIMESTAMP)/"                 \
+    -e "s/<SRC_DIR>/src/"                            \
+        < $(META_INFO_TMPL)                      >$@ \
+        && $(EXTRACT) -e $(PKG_MULTI_OPS_RE) $< >>$@
 
 %.meta_info.m :: $(PKG_ROOT)/lib%.package $(META_INFO_TMPL)
 	@echo GEN $*.meta_info.m \(library\)
@@ -51,9 +68,9 @@ META_INFO_TMPL_COMMON_REPLACE = $(SED)             \
 # SHOULD be done by mpm, e.g. exe%: $(%_DEPS) %$(EXE_EXT)
 %$(EXE_EXT): %.meta_info.m Mercury.modules
 	@$(eval $*_LIBNAME_DEPS := \
-		$(shell $(EXTRACT) -e $(PKG_LIBNAME_DEPS_REGEX) $(PKG_ROOT)/$*.package))
+		$(shell $(EXTRACT) -e $(PKG_LIBNAME_DEPS_RE) $(PKG_ROOT)/$*.package))
 	@$(eval $*_LIBVER_DEPS := \
-		$(shell $(EXTRACT) -e $(PKG_LIBVER_DEPS_REGEX) $(PKG_ROOT)/$*.package))
+		$(shell $(EXTRACT) -e $(PKG_LIBVER_DEPS_RE) $(PKG_ROOT)/$*.package))
 	@echo MMC --make $*
 	@$(MMC) --make $* \
 		$(foreach DEP,$($*_LIBVER_DEPS),--mld $(INSTALL_PREFIX)/$(DEP)/lib/mercury) \
