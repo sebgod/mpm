@@ -82,7 +82,6 @@
 :- implementation.
 
 %IMPORTS
-
 :- use_module string.
 
 author = "<AUTHOR_NAME>"-"<AUTHOR_EMAIL>".
