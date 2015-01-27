@@ -34,11 +34,21 @@ REVISION_SHORT := $(GIT_REVISION_SHORT)
 REVISION_LONG  := $(GIT_REVISION_LONG)
 TIMESTAMP      := $(shell $(DATE))
 
-# Build the local version of the library if provided by this package.
-# This is ensured by the meta_info.m rules, which depends on lib%.package
-lib%: $(PKG_ROOT)/lib%.package %.meta_info.m Mercury.modules
+lib%.dep_vars: $(PKG_ROOT)/lib%.package %.meta_info.m
+	@$(eval lib$*_LIBNAME_DEPS := \
+		$(shell $(SED) -n -e $(PKG_LIBNAME_DEPS_RE) $<))
+	@$(eval lib$*_LIBVER_DEPS := \
+		$(shell $(SED) -n -e $(PKG_LIBVER_DEPS_RE) $<))
 	@$(eval lib$*_INSTALL_DIR := \
 		$(INSTALL_PREFIX)/lib$*/$(shell $(SED) -n -e $(PKG_DIST_VER_RE) $<))
+
+%.dep_vars: $(PKG_ROOT)/%.package %.meta_info.m
+	@$(eval $*_LIBNAME_DEPS :=$(shell $(SED) -n -e $(PKG_LIBNAME_DEPS_RE) $<))
+	@$(eval $*_LIBVER_DEPS :=$(shell $(SED) -n -e $(PKG_LIBVER_DEPS_RE) $<))
+
+# Build the local version of the library if provided by this package.
+# This is ensured by the meta_info.m rules, which depends on lib%.package
+lib%: lib%.dep_vars Mercury.modules
 	@echo MMC --install-prefix="$(lib$*_INSTALL_DIR)" --make lib$*.install
 	@$(MMC) --install-prefix="$(lib$*_INSTALL_DIR)" --make lib$*.install
 
@@ -73,17 +83,12 @@ META_INFO_TMPL_COMMON_REPLACE = $(SED)               \
 	@echo GEN $*.meta_info.m \(executable\)
 	$(shell $(META_INFO_TMPL_COMMON_REPLACE))
 
-%.dep_vars: $(PKG_ROOT)/%.package %.meta_info.m
-	@$(eval $*_LIBNAME_DEPS := \
-		$(shell $(SED) -n -e $(PKG_LIBNAME_DEPS_RE) $<))
-	@$(eval $*_LIBVER_DEPS := \
-		$(shell $(SED) -n -e $(PKG_LIBVER_DEPS_RE) $<))
-
 # XXX: This rule comes last since it might be a (unwanted) catch-call rule
 # XXX: The dependency analysis used in this rule is temporary, and
-# SHOULD be done by mpm, e.g. exe%: $(%_DEPS) %$(EXE_EXT)
+# SHOULD be done by mpm, e.g. %$(EXE_EXT): $(%_DEPS) ...
 %$(EXE_EXT): %.dep_vars Mercury.modules
-	@echo MMC --make $*
+	@echo MMC --make $* deps: $($*_LIBVER_DEPS) libs: $($*_LIBNAME_DEPS)
 	$(MMC) --make $* \
-		$(foreach DEP,$($*_LIBVER_DEPS),--mld $(INSTALL_PREFIX)/$(DEP)/lib/mercury) \
+		$(foreach DEP,$($*_LIBVER_DEPS),\
+		--mld "$(INSTALL_PREFIX)/$(DEP)/lib/mercury") \
 		$(foreach LIB,$($*_LIBNAME_DEPS),--ml $(LIB))
