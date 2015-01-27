@@ -7,12 +7,13 @@ PKG_TUPLE_VER_RE := "s/^version[(]\"$(VER_RE)\"[)].+/ \
 -e s\/<version>\/{\1,\2,\3,\"\4\",\"\5\"}\/i/p"
 PKG_DIST_VER_RE  := "s/^version[(]\"$(VER_RE)\"[)].+/\1.\2.\3\4/p"
 PKG_LIBNAME_DEPS_RE := "s/^dep[(]\"lib([^\"]+)[\"].+/\1/p"
-PKG_LIBVER_DEPS_RE  := "s/^dep[(]\"(lib[^\"]+)[\"]\s*-\s*\"([^\"]+)\".+/\1\/\2/p"
+PKG_NAME_VER_RE := dep[(]\"lib([^\"]+)[\"]\s*,\s*\"([^\"]+)\"
+PKG_LIBVER_DEPS_RE  := "s/^$(PKG_NAME_VER_RE).+/lib\1\/\2/p"
 
 PKG_MULTI    := contrib
 PKG_MULTI_RE := "s/^($(PKG_MULTI))[(]([^)]+)[)].+/-e s\/<\1s>\/\2\|[<\1s>]\/i/p"
 
-PKG_DEPS_RE := "s/^(dep)[(]\"lib([^)]+)[)].+/-e s\/<\1s>\/\"\2\|<NL>[<\1s>]\/i/p"
+PKG_DEPS_RE := "s/^$(PKG_NAME_VER_RE).+/-e s\/<DEPS>\/{\"lib\1\",\"\2\",<NL>univ(\1.meta_info.package)}|<NL>[<DEPS>]\/i/p"
 
 PKG_VARS    := src_dir
 PKG_VARS_RE := "s/($(PKG_VARS))[(]\"([^\"]+)[\"][)].+/-e s\/<\1>\/\2\/i/p"
@@ -74,7 +75,7 @@ MI_TMPL_SED = $(SED)                                 \
     -e "s/<SRC_DIR>/src/"                            \
     -e "s/<($(PKG_MULTI))s>//i"                      \
     -e "s/<DEPS>//i"                                 \
-    -e "s/<NL>/\n    /i"
+    -e "s/<NL>/\n    /ig"
 
 MI_TMPL_OUT = <$(MI_TMPL) >$@
 MI_TMPL_IMP = :- use_module $(DEP).meta_info.\n

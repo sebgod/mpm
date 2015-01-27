@@ -14,6 +14,7 @@
 
 :- import_module pair.
 :- import_module list.
+:- import_module univ.
 
 :- type <MODULE>_package
     ==  { string
@@ -25,7 +26,7 @@
     == list(<MODULE>_dependency).
 
 :- type <MODULE>_dependency
-    ==  pair(string, string).
+    ==  {string, string, univ}.
 
 :- type <MODULE>_version
     ==  {int, int, int, string, string}.
@@ -49,12 +50,16 @@
     %
 :- func contributors = list(pair(string)).
 
-    % dependencies = [Dependency-Version | _]:
+    % dependencies = [{Name, Version, Dependency } | _]:
     %
     % Dependencies of this module, where
     %
-    % `Dependency' is the (weak) reference to the dependent module,
-    % `Version' is the loose version pattern it has to comply.
+    % `Name' is the name of the dependency (and of the package file)
+    %
+    % `Version' is the loose version pattern it has to comply
+    %
+    % `Dependency' is a weakly typed reference to the dependent module,
+    % it must cast to the `mercury_mpm.package' type
     %
 :- func dependencies = <MODULE>_dependencies.
 
@@ -67,6 +72,7 @@
     % revision(Short, Long):
     %
     % `Short' is usually a revision number or short `git' SHA-1 hash
+    %
     % `Long' is a more descriptive name, e.g. from `git describe'
     %
 :- func revision = pair(string) is det.

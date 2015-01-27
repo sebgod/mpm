@@ -18,18 +18,18 @@
 :- import_module mercury_mpm.semver.
 
 :- import_module list.
-:- import_module pair.
 :- import_module pretty_printer.
+:- import_module univ.
 
 %----------------------------------------------------------------------------%
 
 :- type dependencies == list(dependency).
 
-:- type dependency == pair(string, string).
+:- type dependency == {string, string, univ}.
 
 :- type packages == list(package).
 
-:- type package == { string, version, dependencies }.
+:- type package == {string, version, dependencies}.
 
 :- func package ^ name = string.
 
