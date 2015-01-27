@@ -14,23 +14,34 @@
 
 :- interface.
 
+:- import_module pretty_printer.
+
 %----------------------------------------------------------------------------%
 
-:- type version
-    --->    version(
-                version_major   :: int,
-                version_minor   :: int,
-                version_patch   :: int,
-                version_pre     :: string,
-                version_build   :: string
-            ).
+:- type version == {int, int, int, string, string}.
+
+:- func version_to_string(version) = string.
+
+:- func version_to_doc(version) = doc.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
+:- import_module list.
+:- import_module string.
+
 %----------------------------------------------------------------------------%
+
+version_to_string({Major, Minor, Patch, Pre, Build}) =
+    format("%d.%d.%d%s%s",
+        [i(Major), i(Minor), i(Patch),
+            s(Pre   = "" -> "" ; "-" ++ Pre),
+            s(Build = "" -> "" ; "+" ++ Build)
+        ]).
+
+version_to_doc(Version) = str(version_to_string(Version)).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.semver.

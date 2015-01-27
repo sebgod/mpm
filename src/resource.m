@@ -7,7 +7,7 @@
 % Created on: Thu Jan 22 21:54:48 CST 2015
 % Stability: low
 %----------------------------------------------------------------------------%
-% TODO: module documentation
+% An abstraction of all resources (file storage, fixed URIs, etc).
 %----------------------------------------------------------------------------%
 
 :- module mercury_mpm.resource.
@@ -18,11 +18,20 @@
 
 %----------------------------------------------------------------------------%
 
-    % progdir(ProgDir, !IO):
+    % progexe(ProgName, ProgExe, !IO):
     %
-    % Strips the name of the executable from `io.progname'/4.
+    % `ProgExe' is the name of the program `ProgName' with stripped
+    % directory part.
     %
-:- pred progdir(string::out, io::di, io::uo) is det.
+    % Fails if the basename could not be obtained.
+    %
+:- pred progexe(string::in, string::out, io::di, io::uo) is det.
+
+    % progdir(ProgName, ProgDir, !IO):
+    %
+    % `ProgDir' is the directory part of the executable `ProgName'.
+    %
+:- pred progdir(string::in, string::out, io::di, io::uo) is det.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -30,12 +39,20 @@
 :- implementation.
 
 :- import_module dir.
+:- import_module require.
+:- import_module string.
 
 %----------------------------------------------------------------------------%
 
-progdir(ProgDir, !IO) :-
-    io.progname("", ProgName, !IO),
-    ProgDir = dirname(ProgName).
+progexe(ProgName, ProgExe, !IO) :-
+    ( BaseName = basename(ProgName) ->
+        ProgExe = BaseName
+    ;
+        unexpected($module, $pred,
+            "failed to obtain the basename of " ++ ProgName)
+    ).
+
+progdir(ProgName, dirname(ProgName), !IO).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.resource.

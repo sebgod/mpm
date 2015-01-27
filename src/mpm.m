@@ -7,8 +7,7 @@
 % Created on: Wed Jan 21 12:26:59 CST 2015
 % Stability: low
 %----------------------------------------------------------------------------%
-% `mpm' command line interface similar to the node.js `npm' command line
-% interface.
+% `mpm' command line interface similar to the https://www.npmjs.com tool.
 %----------------------------------------------------------------------------%
 
 :- module mpm.
@@ -28,13 +27,16 @@
 
 :- implementation.
 
+:- import_module mpm.meta_info.
+
 :- import_module mercury_mpm.
 :- import_module mercury_mpm.cli.
 
 %----------------------------------------------------------------------------%
 
 main(!IO) :-
-    cli_main(!IO).
+    command_line_arguments(Args, !IO),
+    cli_main(package, Args, !IO).
 
 %----------------------------------------------------------------------------%
 :- end_module mpm.

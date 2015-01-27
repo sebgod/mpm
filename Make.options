@@ -10,7 +10,8 @@ HARDLINK := cp -l -u -f
 KILLALL := killall
 KILLALL_FORCE := killall -9
 MMC := mmc
-SED := sed
+# TODO: GNU sed is required for now
+SED := sed -r
 SLEEP := sleep
 RM  := /bin/rm
 
@@ -20,10 +21,8 @@ EXE_EXT :=
 OBJ_EXT := .o
 
 # composed common variables
-# TODO: GNU sed is required for now
 CC  := $(shell $(MMC) --output-cc)
 CC_TYPE := $(shell $(MMC) --output-cc-type)
-EXTRACT := $(SED) -n -r
 DEL_DIR  := $(RM) -fR
 DEL_FILE := $(RM) -f
 
