@@ -34,17 +34,20 @@ REVISION_SHORT := $(GIT_REVISION_SHORT)
 REVISION_LONG  := $(GIT_REVISION_LONG)
 TIMESTAMP      := $(shell $(DATE))
 
+# common sub-expressions for variable creation
+LIBNAME_DEPS_SH = $(SED) -n -e $(PKG_LIBNAME_DEPS_RE) $<
+LIBVER_DEPS_SH  = $(SED) -n -e $(PKG_LIBVER_DEPS_RE)  $<
+PKG_DIST_VER_SH = $(SED) -n -e $(PKG_DIST_VER_RE)     $<
+
 lib%.dep_vars: $(PKG_ROOT)/lib%.package %.meta_info.m
-	@$(eval lib$*_LIBNAME_DEPS := \
-		$(shell $(SED) -n -e $(PKG_LIBNAME_DEPS_RE) $<))
-	@$(eval lib$*_LIBVER_DEPS := \
-		$(shell $(SED) -n -e $(PKG_LIBVER_DEPS_RE) $<))
+	@$(eval lib$*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
+	@$(eval lib$*_LIBVER_DEPS := $(shell $(LIBVER_DEPS_SH)))
 	@$(eval lib$*_INSTALL_DIR := \
-		$(INSTALL_PREFIX)/lib$*/$(shell $(SED) -n -e $(PKG_DIST_VER_RE) $<))
+		$(INSTALL_PREFIX)/lib$*/$(shell $(PKG_DIST_VER_SH)))
 
 %.dep_vars: $(PKG_ROOT)/%.package %.meta_info.m
-	@$(eval $*_LIBNAME_DEPS :=$(shell $(SED) -n -e $(PKG_LIBNAME_DEPS_RE) $<))
-	@$(eval $*_LIBVER_DEPS :=$(shell $(SED) -n -e $(PKG_LIBVER_DEPS_RE) $<))
+	@$(eval $*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
+	@$(eval $*_LIBVER_DEPS :=$(shell $(LIBVER_DEPS_SH)))
 
 # Build the local version of the library if provided by this package.
 # This is ensured by the meta_info.m rules, which depends on lib%.package
@@ -73,7 +76,6 @@ META_INFO_TMPL_COMMON_REPLACE = $(SED)               \
     -e "s/<DEPS>//i"                                 \
     -e "s/<NL>/\n    /i"                             \
         < $(META_INFO_TMPL) >$@
-#  -e "s/<IMPORTS>/$(foreach )/g"
 
 %.meta_info.m :: $(PKG_ROOT)/lib%.package $(META_INFO_TMPL)
 	@echo GEN $*.meta_info.m \(library\)
@@ -88,7 +90,7 @@ META_INFO_TMPL_COMMON_REPLACE = $(SED)               \
 # SHOULD be done by mpm, e.g. %$(EXE_EXT): $(%_DEPS) ...
 %$(EXE_EXT): %.dep_vars Mercury.modules
 	@echo MMC --make $* deps: $($*_LIBVER_DEPS) libs: $($*_LIBNAME_DEPS)
-	$(MMC) --make $* \
+	@$(MMC) --make $* \
 		$(foreach DEP,$($*_LIBVER_DEPS),\
 		--mld "$(INSTALL_PREFIX)/$(DEP)/lib/mercury") \
 		$(foreach LIB,$($*_LIBNAME_DEPS),--ml $(LIB))
