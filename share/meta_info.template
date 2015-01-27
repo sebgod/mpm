@@ -48,7 +48,7 @@
     %
 :- func contributors = list(pair(string)).
 
-    % dependencies = [Dependency-Version | _]):
+    % dependencies = [Dependency-Version | _]:
     %
     % Dependencies of this module, where
     %
@@ -81,7 +81,7 @@
 
 :- implementation.
 
-/*IMPORTS*/
+%IMPORTS
 
 :- use_module string.
 
