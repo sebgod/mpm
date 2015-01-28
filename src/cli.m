@@ -105,15 +105,7 @@ cli_main(ProgPackage, Args, !IO) :-
 %----------------------------------------------------------------------------%
 
 show_version(ProgPackage, !IO) :-
-    Docs = package_deps_to_docs(ProgPackage),
-    write_doc(docs(Docs), !IO).
-
-:- func package_deps_to_docs(package) = docs.
-
-package_deps_to_docs(Package) = Docs :-
-    % XXX This should not be hard-coded
-    Docs = [indent(map(package_to_doc,
-            [Package /* | Package ^ resolve_dependencies */ ]) ) ] ++ [nl].
+    write_doc(docs([package_tree_to_doc(ProgPackage), nl]), !IO).
 
 %----------------------------------------------------------------------------%
 
@@ -132,7 +124,7 @@ show_usage(Detailed, ProgPackage, !IO) :-
         CmdRefs
     ),
     CmdDocs = cmd_usage(Detailed, CmdRefs),
-    Name = name(ProgPackage),
+    Name = ProgPackage ^ pkg_name,
     Docs = [
         hard_nl,
         str(format("usage: %s ?[options] <command>", [s(Name)])), hard_nl,
