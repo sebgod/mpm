@@ -59,6 +59,7 @@
 
 :- import_module bool.
 :- import_module char.
+:- import_module dir.
 :- import_module getopt.
 :- import_module pretty_printer.
 :- import_module require.
@@ -87,6 +88,7 @@ cli_main(ProgPackage, Args, !IO) :-
                 (
                     Cmd = list,
                     print_line("listing dependencies", !IO)
+                    % find_repository_up(this_directory, RepoRes, !IO)
                 ;
                     Cmd = build,
                     print_line("building local packages", !IO)
