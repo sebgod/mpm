@@ -15,14 +15,14 @@
 
 :- interface.
 
+:- import_module mercury_mpm.documentation.
+
+:- import_module bool.
 :- import_module list.
-:- import_module pretty_printer.
 
 %----------------------------------------------------------------------------%
 
-:- type cmd_refs == list(cmd_ref).
-
-:- type cmd_ref == { cmd, string }.
+:- instance doc_ref(cmd).
 
     % for a documentation of these types,
     % please refer to `cmd_to_docs'/1 in this module.
@@ -36,29 +36,33 @@
 :- mode parse_cmd(in, out(non_empty_list), in) is det.
 :- mode parse_cmd(out, out(non_empty_list), in) is multi.
 
-:- func to_string(cmd) = string.
-
-:- func to_doc(cmd) = doc.
-
-:- func cmd_to_docs(cmd) = docs.
-
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
+:- import_module pretty_printer.
+
 %----------------------------------------------------------------------------%
+
+:- instance doc_ref(cmd) where [
+    (func(to_doc/1) is cmd_to_doc),
+    (func(to_string/1) is cmd_to_string),
+    (values(Cmd) :- parse_cmd(Cmd, _, []))
+].
 
 parse_cmd(list)  --> ["list"].
 parse_cmd(build) --> ["build"].
 
-to_string(Cmd) = String :-
+:- func cmd_to_string(cmd) = string.
+
+cmd_to_string(Cmd) = String :-
     parse_cmd(Cmd, [String | _], []).
 
-to_doc(Cmd) = docs(cmd_to_docs(Cmd)).
+:- func cmd_to_doc(cmd) = doc.
 
-cmd_to_docs(list)  = [str("list dependencies of ?[packages")].
-cmd_to_docs(build) = [str("builds ?[local packages]")].
+cmd_to_doc(list)  = str("list dependencies of ?[packages").
+cmd_to_doc(build) = str("builds ?[local packages]").
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.command.

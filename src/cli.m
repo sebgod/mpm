@@ -20,6 +20,7 @@
 
 :- interface.
 
+% :- import_module mercury_mpm.listing.
 :- import_module mercury_mpm.package.
 
 :- import_module io.
@@ -52,8 +53,10 @@
 
 :- implementation.
 
+:- import_module mercury_mpm.documentation.
 :- import_module mercury_mpm.command.
 :- import_module mercury_mpm.meta_info.
+:- import_module mercury_mpm.option.
 :- import_module mercury_mpm.resource.
 :- import_module mercury_mpm.semver.
 
@@ -63,7 +66,6 @@
 :- import_module getopt.
 :- import_module pretty_printer.
 :- import_module require.
-:- import_module solutions.
 :- import_module string.
 
 %----------------------------------------------------------------------------%
@@ -82,7 +84,7 @@ cli_main(ProgPackage, Args, !IO) :-
         then
             (
                 ShowHelp = yes,
-                show_cmd_usage(ShowHelp, [{Cmd, to_string(Cmd)}], !IO)
+                show_usages(ShowHelp, [Cmd], !IO)
             ;
                 ShowHelp = no,
                 (
@@ -97,7 +99,7 @@ cli_main(ProgPackage, Args, !IO) :-
         else if ShowVersion = yes then
             show_version(ProgPackage, !IO)
         else
-            show_usage(ShowHelp, ProgPackage, !IO)
+            show_prog_usage(ShowHelp, ProgPackage, !IO)
         )
     ;
         Result = error(ErrorMessage),
@@ -111,90 +113,45 @@ show_version(ProgPackage, !IO) :-
 
 %----------------------------------------------------------------------------%
 
-    % show_usage(Detailed, ProgPackage, !IO):
+    % show_prog_usage(Detailed, ProgPackage, !IO):
     %
     % Displays the command line interface using the `ProgPackage' as the
     % executable, with detailed help for each command if `Detailed' is 'yes'.
     %
-:- pred show_usage(bool::in, package::in, io::di, io::uo) is det.
+:- pred show_prog_usage(bool::in, package::in, io::di, io::uo) is det.
 
-show_usage(Detailed, ProgPackage, !IO) :-
-    solutions(
-        (pred({Cmd, CmdString}::out) is nondet :-
-            parse_cmd(Cmd, [CmdString], [])
-        ),
-        CmdRefs
-    ),
-    CmdDocs = cmd_usage(Detailed, CmdRefs),
+show_prog_usage(Detailed, ProgPackage, !IO) :-
+    CmdDocs =
+        doc_ref_list_to_docs(Detailed, doc_ref_values : list(cmd)),
+    OptionDocs =
+        doc_ref_list_to_docs(Detailed, doc_ref_values : list(option)),
     Name = ProgPackage ^ pkg_name,
     Docs = [
         hard_nl,
-        str(format("usage: %s ?[options] <command>", [s(Name)])), hard_nl,
+        str(format("usage: %s ?[option] ?<command>", [s(Name)])), hard_nl,
         hard_nl,
         str("where <command> is one of:"),
         indent([nl | CmdDocs]),
         hard_nl,
-        str("where <option> is one of:"), nl
+        str("where <option> is one of:"),
+        indent([nl | OptionDocs]),
+        hard_nl
     ],
     write_doc(docs(Docs), !IO).
 
-    % show_cmd_usage(Detailed, CmdRefs, !IO):
+    % show_usages(Detailed, DocRefs, !IO):
     %
-    % Displays command line usage information on all given command references.
+    % Displays command line usage information on all given `DocRefs' commands
+    % or options, with optional `Detailed' level.
+    %
     % This is used by the general `show_usage'/4 and by the `-h' flag
     % implementation.
     %
-:- pred show_cmd_usage(bool::in, cmd_refs::in, io::di, io::uo) is det.
+:- pred show_usages(bool::in, list(T)::in, io::di, io::uo) is det
+    <= doc_ref(T).
 
-show_cmd_usage(Detailed, CmdRefs, !IO) :-
-    write_doc(docs(cmd_usage(Detailed, CmdRefs)), !IO).
-
-:- func cmd_usage(bool, cmd_refs) = docs.
-
-cmd_usage(Detailed, CmdRefs) = CmdDocs :-
-    (
-        Detailed = yes,
-        CmdFmt =
-            (func({Cmd, CmdString}) =
-                group([
-                    str(CmdString), str(" - "),
-                    indent(cmd_to_docs(Cmd)),
-                    hard_nl
-                ])
-            ),
-        OptNl = []
-    ;
-        Detailed = no,
-        CmdFmt = (func({_, CmdString}) = docs([str(CmdString), str(" ")])),
-        OptNl = [nl]
-    ),
-    CmdDocs = map(CmdFmt, CmdRefs) ++ OptNl.
-
-%----------------------------------------------------------------------------%
-
-:- type option
-    --->    help        % displays help about program usage.
-    ;       debug       % enables debugging of package commands.
-    ;       version     % displays the versions of the library and executable.
-    .
-
-:- pred short_option(char::in, option::out) is semidet.
-
-short_option(h, help).
-short_option(d, debug).
-short_option(v, version).
-
-:- pred long_option(string::in, option::out) is semidet.
-
-long_option("help", help).
-long_option("debug", debug).
-long_option("version", version).
-
-:- pred option_default(option::out, option_data::out) is multi.
-
-option_default(help,    bool(no)).
-option_default(debug,   bool(no)).
-option_default(version, bool(no)).
+show_usages(Detailed, DocRefs, !IO) :-
+    write_doc(docs(doc_ref_list_to_docs(Detailed, DocRefs)), !IO).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.cli.

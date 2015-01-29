@@ -16,7 +16,10 @@
 
 :- include_module mercury_mpm.cli.
 :- include_module mercury_mpm.command.
+:- include_module mercury_mpm.documentation.
+:- include_module mercury_mpm.listing.
 :- include_module mercury_mpm.meta_info.
+:- include_module mercury_mpm.option.
 :- include_module mercury_mpm.package.
 :- include_module mercury_mpm.resource.
 :- include_module mercury_mpm.semver.
