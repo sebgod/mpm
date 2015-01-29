@@ -1,0 +1,28 @@
+# HOME will usually be set by the environment, on Windows try to emulate
+ifeq ($(strip $(HOME)),)
+    ifeq ($(strip $(USERPROFILE)),)
+	    $(error HOME is empty)
+    else
+        HOME := $(USERPROFILE)
+    endif
+endif
+
+# INSTALL_PREFIX is the directory where mpm itself will be installed
+INSTALL_PREFIX := $(HOME)
+
+ifeq "$(INSTALL_PREFIX)" "$(HOME)"
+    MPM_DIR := $(HOME)/.mpm
+    MPM_ETC_DIR := $(MPM_DIR)
+else
+    MPM_DIR := $(INSTALL_PREFIX)
+    ifeq "$(INSTALL_PREFIX)" "/usr"
+        MPM_ETC_DIR := /etc
+    else
+        MPM_ETC_DIR := $(INSTALL_PREFIX)/etc
+    endif
+endif
+
+# MPM_PKG_DIR is the destination of all packages (c.f. npm: node_modules)
+MPM_PKG_DIR   := $(MPM_DIR)/mpm_packages
+MPM_BIN_DIR := $(INSTALL_PREFIX)/bin
+MPM_SHARE_DIR := $(INSTALL_PREFIX)/share/mpm

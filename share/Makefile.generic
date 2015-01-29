@@ -44,7 +44,7 @@ lib%.dep_vars: $(PKG_ROOT)/lib%.package
 	@$(eval lib$*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
 	@$(eval lib$*_LIBVER_DEPS := $(shell $(LIBVER_DEPS_SH)))
 	@$(eval lib$*_INSTALL_DIR := \
-		$(INSTALL_PREFIX)/lib$*/$(shell $(PKG_DIST_VER_SH)))
+		$(MPM_PKG_DIR)/lib$*/$(shell $(PKG_DIST_VER_SH)))
 
 %.dep_vars: $(PKG_ROOT)/%.package
 	@$(eval $*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
@@ -99,5 +99,5 @@ MI_TMPL_IMP = :- use_module $(DEP).meta_info.\n
 	@echo MMC --make $* deps: $($*_LIBVER_DEPS)
 	@$(MMC) --make $* \
 		$(foreach DEP,$($*_LIBVER_DEPS),\
-		--mld "$(INSTALL_PREFIX)/$(DEP)/lib/mercury") \
+			--mld "$(MPM_PKG_DIR)/$(DEP)/lib/mercury") \
 		$(foreach LIB,$($*_LIBNAME_DEPS),--ml $(LIB))

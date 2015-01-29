@@ -1,14 +1,17 @@
 # (quasi)-standard Unix tools
 CAT := cat
+COPY := cp -u -f
 CURL := curl
 CURL_FLAGS := -s -L
 DATE := date
 DIFF := diff
 DIFF_FLAGS := -u
 GIT := git
-HARDLINK := cp -l -u -f
+# TODO: we should ask MMC what it is using for install
+INSTALL := install
 KILLALL := killall
 KILLALL_FORCE := killall -9
+MKDIR := mkdir
 MMC := mmc
 # TODO: GNU sed is required for now
 SED := sed -r
@@ -25,6 +28,7 @@ CC  := $(shell $(MMC) --output-cc)
 CC_TYPE := $(shell $(MMC) --output-cc-type)
 DEL_DIR  := $(RM) -fR
 DEL_FILE := $(RM) -f
+HARDLINK := $(COPY) -l
 
 # Windows specific overrides
 ifdef WINDIR

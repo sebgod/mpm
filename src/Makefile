@@ -1,11 +1,33 @@
-include ../Make.options
-PKG_ROOT =..
-USER_MPM_DIR = $(HOME)/.mpm
-INSTALL_PREFIX = $(USER_MPM_DIR)/mpm_packages
-MI_TMPL = $(PKG_ROOT)/share/meta_info.template
+# PKG_ROOT is the root of this package (i.e. git repository)
+PKG_ROOT :=..
+include $(PKG_ROOT)/Make.options
+include $(PKG_ROOT)/mpm.options
+
+MI_TMPL := $(PKG_ROOT)/share/meta_info.template
 
 .PHONY: default
 default: libmercury_mpm mpm$(EXE_EXT)
+
+.PHONY: install
+install: default install_share install_etc install_bin
+
+.PHONY: install_share
+install_share: $(wildcard $(PKG_ROOT)/share/*)
+	@echo INSTALL $^
+	@$(MKDIR) -p "$(MPM_SHARE_DIR)"
+	@$(INSTALL) -t "$(MPM_SHARE_DIR)" -p -m 644 $^
+
+.PHONY: install_etc
+install_etc: $(wildcard $(PKG_ROOT)/*.options)
+	@echo INSTALL $^
+	@$(MKDIR) -p "$(MPM_ETC_DIR)"
+	@$(INSTALL) -t "$(MPM_ETC_DIR)" --compare --backup=existing -m 644 $^
+
+.PHONY: install_bin
+install_bin:
+	@echo INSTALL mpm
+	@$(MKDIR) -p "$(MPM_BIN_DIR)"
+	@$(INSTALL) -t "$(MPM_BIN_DIR)" "$(PKG_ROOT)/src/mpm$(EXE_EXT)"
 
 .PHONY: clean
 clean:
