@@ -20,7 +20,6 @@
 
 :- interface.
 
-% :- import_module mercury_mpm.listing.
 :- import_module mercury_mpm.package.
 
 :- import_module io.
@@ -41,13 +40,6 @@
     %
 :- pred cli_main(package::in, list(string)::in, io::di, io::uo) is det.
 
-    % show_version(ProgPackage, !IO):
-    %
-    % This procedure will show the name and version of the
-    % executing program given as `ProgPackage' and of all of its dependencies.
-    %
-:- pred show_version(package::in, io::di, io::uo) is det.
-
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
@@ -55,6 +47,7 @@
 
 :- import_module mercury_mpm.documentation.
 :- import_module mercury_mpm.command.
+% :- import_module mercury_mpm.listing.
 :- import_module mercury_mpm.meta_info.
 :- import_module mercury_mpm.option.
 :- import_module mercury_mpm.resource.
@@ -84,23 +77,24 @@ cli_main(ProgPackage, Args, !IO) :-
         then
             (
                 ShowHelp = yes,
-                show_usages(ShowHelp, [Cmd], !IO)
+                Doc = docs(doc_ref_list_to_docs(ShowHelp, [Cmd]))
             ;
                 ShowHelp = no,
                 (
                     Cmd = list,
-                    print_line("listing dependencies", !IO)
+                    Doc = str("listing dependencies")
                     % find_repository_up(this_directory, RepoRes, !IO)
                 ;
                     Cmd = build,
-                    print_line("building local packages", !IO)
+                    Doc = str("building local packages")
                 )
             )
         else if ShowVersion = yes then
-            show_version(ProgPackage, !IO)
+            Doc = docs([package_tree_to_doc(ProgPackage), nl])
         else
-            show_prog_usage(ShowHelp, ProgPackage, !IO)
-        )
+            Doc = prog_usage_to_doc(ShowHelp, ProgPackage)
+        ),
+        write_doc(Doc, !IO)
     ;
         Result = error(ErrorMessage),
         require.error(ErrorMessage)
@@ -108,19 +102,14 @@ cli_main(ProgPackage, Args, !IO) :-
 
 %----------------------------------------------------------------------------%
 
-show_version(ProgPackage, !IO) :-
-    write_doc(docs([package_tree_to_doc(ProgPackage), nl]), !IO).
-
-%----------------------------------------------------------------------------%
-
-    % show_prog_usage(Detailed, ProgPackage, !IO):
+    % prog_usage_to_doc(Detailed, ProgPackage) = Doc:
     %
-    % Displays the command line interface using the `ProgPackage' as the
-    % executable, with detailed help for each command if `Detailed' is 'yes'.
+    % Documents the command line interface of the `ProgPackage' executable,
+    % with detailed help for each command and option if `Detailed' is 'yes'.
     %
-:- pred show_prog_usage(bool::in, package::in, io::di, io::uo) is det.
+:- func prog_usage_to_doc(bool, package) = doc.
 
-show_prog_usage(Detailed, ProgPackage, !IO) :-
+prog_usage_to_doc(Detailed, ProgPackage) = docs(Docs) :-
     CmdDocs =
         doc_ref_list_to_docs(Detailed, doc_ref_values : list(cmd)),
     OptionDocs =
@@ -136,22 +125,7 @@ show_prog_usage(Detailed, ProgPackage, !IO) :-
         str("where <option> is one of:"),
         indent([nl | OptionDocs]),
         hard_nl
-    ],
-    write_doc(docs(Docs), !IO).
-
-    % show_usages(Detailed, DocRefs, !IO):
-    %
-    % Displays command line usage information on all given `DocRefs' commands
-    % or options, with optional `Detailed' level.
-    %
-    % This is used by the general `show_usage'/4 and by the `-h' flag
-    % implementation.
-    %
-:- pred show_usages(bool::in, list(T)::in, io::di, io::uo) is det
-    <= doc_ref(T).
-
-show_usages(Detailed, DocRefs, !IO) :-
-    write_doc(docs(doc_ref_list_to_docs(Detailed, DocRefs)), !IO).
+    ].
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.cli.
