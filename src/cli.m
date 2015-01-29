@@ -82,23 +82,36 @@ cli_main(ProgPackage, Args, !IO) :-
                 ShowHelp = no,
                 (
                     Cmd = list,
-                    Doc = str("listing dependencies")
-                    % find_repository_up(this_directory, RepoRes, !IO)
+                    lookup_bool_option(OptionTable, installed, Installed),
+                    (
+                        Installed = yes,
+                        Doc = docs([str("listing installed packages"), nl])
+                    ;
+                        Installed = no,
+                        find_repository_up(this_directory, RepoRes, !IO),
+                        (
+                            RepoRes = ok(Repo),
+                            Doc = docs([str("listing local packages"), nl])
+                        ;
+                            RepoRes = io.error(Error),
+                            Doc = error_to_doc(Error)
+                        )
+                    )
                 ;
                     Cmd = build,
-                    Doc = str("building local packages")
+                    Doc = docs([str("building local packages"), nl])
                 )
             )
         else if ShowVersion = yes then
             Doc = docs([package_tree_to_doc(ProgPackage), nl])
         else
             Doc = prog_usage_to_doc(ShowHelp, ProgPackage)
-        ),
-        write_doc(Doc, !IO)
+        )
     ;
         Result = error(ErrorMessage),
-        require.error(ErrorMessage)
-    ).
+        Doc = error_message_to_doc(ErrorMessage)
+    ),
+    write_doc(Doc, !IO).
 
 %----------------------------------------------------------------------------%
 

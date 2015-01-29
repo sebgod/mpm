@@ -16,6 +16,7 @@
 :- interface.
 
 :- import_module bool.
+:- import_module io.
 :- import_module list.
 :- import_module pretty_printer.
 
@@ -32,6 +33,10 @@
 :- func doc_ref_values = list(T) <= doc_ref(T).
 
 :- func doc_ref_list_to_docs(detail, list(T)) = docs <= doc_ref(T).
+
+:- func error_to_doc(io.error) = doc.
+
+:- func error_message_to_doc(string) = doc.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -62,6 +67,11 @@ doc_ref_list_to_docs(Detailed, DocRefs) = Docs :-
         OptNl = [nl]
     ),
     Docs = map(FmtFunc, DocRefs) ++ OptNl.
+
+error_to_doc(Error) = error_message_to_doc(error_message(Error)).
+
+error_message_to_doc(Message) =
+    group([str("\x1b\[31;1merror: \x1b\[0m"), str(Message), hard_nl]).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.documentation.

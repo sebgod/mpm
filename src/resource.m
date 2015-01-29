@@ -148,7 +148,8 @@ find_repository_up(DirName, RepoRes, !IO) :-
                 MaybeRepoDir = no,
                 BaseDir = dirname(AbsDirName),
                 ( if path_name_is_root_directory(BaseDir) then
-                    RepoRes = error(make_io_error("invalid: " ++ BaseDir))
+                    RepoRes = format_error_res("cannot go further up: %s",
+                        $file, $pred, [s(BaseDir)])
                 else
                     find_repository_up(BaseDir, RepoRes, !IO)
                 )
@@ -180,6 +181,22 @@ find_repo_dir(DirName, BaseName, FileType, Continue, !Repo, !IO) :-
     else
         Continue = yes
     ).
+
+%----------------------------------------------------------------------------%
+%
+% `io.error' format helper functions
+%
+
+:- func format_error_res(string, string, string, list(io.poly_type)) =
+    res(T).
+
+format_error_res(Fmt, File, Pred, Params) =
+    error(format_error(Fmt, File, Pred, Params)).
+
+:- func format_error(string, string, string, list(io.poly_type)) = io.error.
+
+format_error(Fmt, File, Pred, Params) =
+    make_io_error(format("%s: %s: " ++ Fmt, [s(File), s(Pred) | Params])).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.resource.
