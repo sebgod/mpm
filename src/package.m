@@ -151,7 +151,12 @@ dependencies({_, _, Dependencies}) = Dependencies.
 {_, Pattern, _} ^ dep_pattern = Pattern.
 
 {_, _, Univ} ^ dep_package = Package :-
-    det_univ_to_type(Univ, Package).
+    (
+        univ_to_type(Univ, Fun) ->
+        Package = apply(Fun)
+    ;
+        det_univ_to_type(Univ, Package)
+    ).
 
 %----------------------------------------------------------------------------%
 
@@ -181,7 +186,8 @@ package_tree_to_doc(Package) = Doc :-
 from_file(FileName, package_file(FileName, {PkgName, Version, Deps}), !IO) :-
     PkgName = det_remove_suffix(det_basename(FileName), package_file_ext),
     Version = invalid_package_version,
-    Deps = [].
+    Deps = [{"libdepend", "0.[1-9].*",
+        univ({"libdepend", invalid_package_version, []} : package)}].
 
 package_file_ext = ".package".
 
