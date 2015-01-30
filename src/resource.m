@@ -49,26 +49,28 @@
     %
 :- pred make_absolute : resolve_dir_pred `with_inst` resolve_dir_pred.
 
-%----------------------------------------------------------------------------%
+    % format_error_res(Fmt, File, Pred, Params) = Result:
+    %
+    % Creates a `io.res' result with the `error' constructor initalised with
+    % a formatted error message, obtained using:
+    % format_error(Fmt, File, Pred, Params)
+    %
+:- func format_error_res(string, string, string, list(io.poly_type)) =
+    res(T).
 
-:- type repository
-    --->    repository(
-                repo_dir            :: string,
-                repo_package_files  :: list(string)
-            ).
-
-:- pred find_repository_up(string::in, res(repository)::out, io::di, io::uo)
-    is det.
+    % format_error(Fmt, File, Pred, Params) = Error:
+    %
+    % Uses `Fmt' and `Params' to create a formatted `io.error'
+    % `Error' message, including the `File' and `Pred' name.
+    %
+:- func format_error(string, string, string, list(io.poly_type)) = io.error.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
-:- import_module bool.
 :- import_module dir.
-:- import_module maybe.
-:- import_module require.
 :- import_module string.
 
 %----------------------------------------------------------------------------%
@@ -119,81 +121,14 @@ resolve_special(DirName, NoSpecialRes, !IO) :-
         NoSpecialRes = ok(DirName)
     ).
 
-%----------------------------------------------------------------------------%
-%
-% Source code repository resolution:
-%
-% The idea is that each package must reside within a version controlled
-% repository, this simplifies package management (i.e. to cloning)
-%
-
-find_repository_up(DirName, RepoRes, !IO) :-
-    make_absolute(DirName, AbsDirNameRes, !IO),
-    (
-        AbsDirNameRes = ok(AbsDirName),
-        foldl2(find_repo_dir, AbsDirName, no, FindRepoDirRes, !IO),
-        (
-            FindRepoDirRes = ok(MaybeRepoDir),
-            (
-                MaybeRepoDir = yes(RepoDir),
-                foldl2(list_package_files, RepoDir, [], PackageFilesRes, !IO),
-                (
-                    PackageFilesRes = ok(PackageFiles),
-                    RepoRes = ok(repository(RepoDir, PackageFiles))
-                ;
-                    PackageFilesRes = error(_, Error),
-                    RepoRes = error(Error)
-                )
-            ;
-                MaybeRepoDir = no,
-                BaseDir = dirname(AbsDirName),
-                ( if path_name_is_root_directory(BaseDir) then
-                    RepoRes = format_error_res("cannot go further up: %s",
-                        $file, $pred, [s(BaseDir)])
-                else
-                    find_repository_up(BaseDir, RepoRes, !IO)
-                )
-            )
-        ;
-            FindRepoDirRes = error(_, Error),
-            RepoRes = error(Error)
-        )
-    ;
-        AbsDirNameRes = error(Error),
-        RepoRes = error(Error)
-    ).
-
-:- pred list_package_files : foldl_pred(list(string)) `with_inst` foldl_pred.
-
-list_package_files(_DirName, BaseName, FileType, yes, !Files, !IO) :-
-    ( if FileType = regular_file, suffix(BaseName, ".package") then
-        !:Files = [BaseName | !.Files]
-    else
-        true
-    ).
-
-:- pred find_repo_dir : foldl_pred(maybe(string)) `with_inst` foldl_pred.
-
-find_repo_dir(DirName, BaseName, FileType, Continue, !Repo, !IO) :-
-    ( if FileType = directory, BaseName = ".git" then
-        !:Repo = yes(DirName),
-        Continue = no
-    else
-        Continue = yes
-    ).
 
 %----------------------------------------------------------------------------%
 %
-% `io.error' format helper functions
+% Implementation of `io.error' format helper functions
 %
-
-:- func format_error_res(string, string, string, list(io.poly_type)) =
-    res(T).
 
 format_error_res(Fmt, File, Pred, Params) =
     error(format_error(Fmt, File, Pred, Params)).
-
-:- func format_error(string, string, string, list(io.poly_type)) = io.error.
 
 format_error(Fmt, File, Pred, Params) =
     make_io_error(format("%s: %s: " ++ Fmt, [s(File), s(Pred) | Params])).

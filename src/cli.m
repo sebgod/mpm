@@ -47,10 +47,10 @@
 
 :- import_module mercury_mpm.documentation.
 :- import_module mercury_mpm.command.
-% :- import_module mercury_mpm.listing.
 :- import_module mercury_mpm.meta_info.
 :- import_module mercury_mpm.option.
 :- import_module mercury_mpm.resource.
+:- import_module mercury_mpm.container.
 :- import_module mercury_mpm.semver.
 
 :- import_module bool.
@@ -85,25 +85,25 @@ cli_main(ProgPackage, Args, !IO) :-
                     lookup_bool_option(OptionTable, installed, Installed),
                     (
                         Installed = yes,
-                        Doc = docs([str("listing installed packages"), nl])
+                        Doc = str("listing installed packages")
                     ;
                         Installed = no,
-                        find_repository_up(this_directory, RepoRes, !IO),
+                        find_container_up(this_directory, ContainerRes, !IO),
                         (
-                            RepoRes = ok(Repo),
-                            Doc = docs([str("listing local packages"), nl])
+                            ContainerRes = ok(Container),
+                            Doc = container_to_doc(Container)
                         ;
-                            RepoRes = io.error(Error),
+                            ContainerRes = io.error(Error),
                             Doc = error_to_doc(Error)
                         )
                     )
                 ;
                     Cmd = build,
-                    Doc = docs([str("building local packages"), nl])
+                    Doc = str("building local packages")
                 )
             )
         else if ShowVersion = yes then
-            Doc = docs([package_tree_to_doc(ProgPackage), nl])
+            Doc = package_tree_to_doc(ProgPackage)
         else
             Doc = prog_usage_to_doc(ShowHelp, ProgPackage)
         )
@@ -111,7 +111,7 @@ cli_main(ProgPackage, Args, !IO) :-
         Result = error(ErrorMessage),
         Doc = error_message_to_doc(ErrorMessage)
     ),
-    write_doc(Doc, !IO).
+    write_doc(docs([Doc, nl]), !IO).
 
 %----------------------------------------------------------------------------%
 
@@ -136,8 +136,7 @@ prog_usage_to_doc(Detailed, ProgPackage) = docs(Docs) :-
         indent([nl | CmdDocs]),
         hard_nl,
         str("where <option> is one of:"),
-        indent([nl | OptionDocs]),
-        hard_nl
+        indent([nl | OptionDocs])
     ].
 
 %----------------------------------------------------------------------------%

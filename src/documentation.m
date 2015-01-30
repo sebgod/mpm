@@ -71,7 +71,7 @@ doc_ref_list_to_docs(Detailed, DocRefs) = Docs :-
 error_to_doc(Error) = error_message_to_doc(error_message(Error)).
 
 error_message_to_doc(Message) =
-    group([str("\x1b\[31;1merror: \x1b\[0m"), str(Message), hard_nl]).
+    group([str("\x1b\[31;1merror: \x1b\[0m"), str(Message)]).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.documentation.

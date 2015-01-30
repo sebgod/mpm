@@ -61,7 +61,7 @@ cmd_to_string(Cmd) = String :-
 
 :- func cmd_to_doc(cmd) = doc.
 
-cmd_to_doc(list)  = str("list dependencies of ?[packages").
+cmd_to_doc(list)  = str("list dependencies of ?[packages]").
 cmd_to_doc(build) = str("builds ?[local packages]").
 
 %----------------------------------------------------------------------------%
