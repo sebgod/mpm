@@ -9,7 +9,7 @@
 %----------------------------------------------------------------------------%
 % This module implements the `container' type.
 % In this context a container is the collection of local package files
-% stored in a source code repository.
+% stored in a source code repository (only 'git' is supported at the moment)
 %----------------------------------------------------------------------------%
 
 :- module mercury_mpm.container.
@@ -38,6 +38,7 @@
 
 :- implementation.
 
+:- import_module mercury_mpm.package.
 :- import_module mercury_mpm.resource.
 
 :- import_module bool.
@@ -51,13 +52,13 @@
 % Source code container resolution:
 %
 % The idea is that each package must reside within a version controlled
-% container, this simplifies package management (i.e. to cloning)
+% source code repository, this simplifies package management (e.g. git clone).
 %
 
 :- type container
     --->    container(
-                container_dir            :: string,
-                container_package_files  :: list(string)
+                container_scm_dir       :: string,
+                container_package_files :: list(package_file)
             ).
 
 find_container_up(DirName, ContainerRes, !IO) :-
@@ -69,13 +70,14 @@ find_container_up(DirName, ContainerRes, !IO) :-
             FindContainerDirRes = ok(MaybeContainerDir),
             (
                 MaybeContainerDir = yes(ContainerDir),
-                foldl2(list_package_files, ContainerDir, [], PackageFilesRes,
-                    !IO),
+                foldl2(list_package_files, ContainerDir, [],
+                    PackageFileNamesRes, !IO),
                 (
-                    PackageFilesRes = ok(PackageFiles),
+                    PackageFileNamesRes = ok(PackageFileNames),
+                    map_foldl(from_file, PackageFileNames, PackageFiles, !IO),
                     ContainerRes = ok(container(ContainerDir, PackageFiles))
                 ;
-                    PackageFilesRes = error(_, Error),
+                    PackageFileNamesRes = error(_, Error),
                     ContainerRes = error(Error)
                 )
             ;
@@ -101,7 +103,7 @@ find_container_up(DirName, ContainerRes, !IO) :-
 :- pred list_package_files : foldl_pred(list(string)) `with_inst` foldl_pred.
 
 list_package_files(_DirName, BaseName, FileType, yes, !Files, !IO) :-
-    ( if FileType = regular_file, suffix(BaseName, ".package") then
+    ( if FileType = regular_file, suffix(BaseName, package_file_ext) then
         !:Files = [BaseName | !.Files]
     else
         true
@@ -119,7 +121,12 @@ find_container_dir(DirName, BaseName, FileType, Continue, !Container, !IO) :-
 
 %----------------------------------------------------------------------------%
 
-container_to_doc(_Container) = str("?container?").
+container_to_doc(Container) = indent(
+    [ str("git repository: ")
+    , str(Container ^ container_scm_dir)
+    , nl
+    | map(package_file_to_doc, Container ^ container_package_files)
+    ]).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.container.

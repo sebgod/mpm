@@ -9,6 +9,10 @@
 %----------------------------------------------------------------------------%
 % The `package' modules provides the `package' type, the main reference to
 % implement dependencies.
+%
+% NOTE: Unless the stability reaches 'high', you should refrain from using
+% this code in production, as the on-disk file format for packages and the
+% tuple to represent the `package' type might change.
 %----------------------------------------------------------------------------%
 
 :- module mercury_mpm.package.
@@ -17,6 +21,7 @@
 
 :- import_module mercury_mpm.semver.
 
+:- import_module io.
 :- import_module list.
 :- import_module pretty_printer.
 :- import_module univ.
@@ -41,9 +46,23 @@
     %
 :- type dependency == {string, string, univ}.
 
-%----------------------------------------------------------------------------%
+    % A `package_file' wraps a URI, the `package' reference and other
+    % parsed data (build instructions, etc.)
+    %
+:- type package_file
+    --->    package_file(
+                pkg_file_uri        :: string,
+                pkg_file_package    :: package
+            ).
 
-% Access package name
+%----------------------------------------------------------------------------%
+%
+% Package information access functions.
+%
+% Please use these instead of unpacking the `package' tuple directly.
+%
+
+    % Access package name
 :- func package ^ pkg_name = string.
 
     % Access package version
@@ -58,6 +77,11 @@
 :- func resolve_dependencies(package) = packages.
 
 %----------------------------------------------------------------------------%
+%
+% Package dependency information access functions.
+%
+% Please use these instead of unpacking the `dependency' tuple directly.
+%
 
     % Access dependency name
 :- func dependency ^ dep_name = string.
@@ -66,6 +90,10 @@
 :- func dependency ^ dep_pattern = string.
 
     % Access dependent package
+    %
+    % This function might throw exceptions since the current implementation is
+    % based on `univ', see the comment about stability on top of the module.
+    %
 :- func dependency ^ dep_package = package.
 
 %----------------------------------------------------------------------------%
@@ -77,12 +105,36 @@
     % package_to_doc(Package) = Doc:
     %
     % Recursive version of `package_to_doc'/1.
+    %
 :- func package_tree_to_doc(package) = doc.
+
+%----------------------------------------------------------------------------%
+
+    % from_file(FileName, PackageFile, !IO):
+    %
+    % `PackageFile' is parsed from the given `FileName'.
+    %
+:- pred from_file(string::in, package_file::out, io::di, io::uo) is det.
+
+    % package_file_ext = Extension:
+    %
+    % `Extension' is the extension used for Mercury package files,
+    % in the current implementation this is fixed to '.package'.
+    %
+:- func package_file_ext = string.
+
+    % package_file_to_doc(Package) = Doc:
+    %
+:- func package_file_to_doc(package_file) = doc.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
+
+:- import_module dir.       % for `det_basename'/1
+:- import_module list.
+:- import_module string.    % for `det_remove_suffix'/2
 
 %----------------------------------------------------------------------------%
 
@@ -109,9 +161,9 @@ resolve_dependencies(Package) =
 %----------------------------------------------------------------------------%
 
 package_to_doc(Package) =
-    group([str(Package ^ pkg_name)
-            , str(": ")
-            , version_to_doc(Package ^ pkg_version)
+    group([ str(Package ^ pkg_name)
+          , str(": ")
+          , version_to_doc(Package ^ pkg_version)
           ]).
 
 package_tree_to_doc(Package) = Doc :-
@@ -122,6 +174,24 @@ package_tree_to_doc(Package) = Doc :-
         indent([package_to_doc(Package), nl |
                 map(package_tree_to_doc, Dependencies)])
     ).
+
+%----------------------------------------------------------------------------%
+
+    % TODO: This is just a stub
+from_file(FileName, package_file(FileName, {PkgName, Version, Deps}), !IO) :-
+    PkgName = det_remove_suffix(det_basename(FileName), package_file_ext),
+    Version = invalid_package_version,
+    Deps = [].
+
+package_file_ext = ".package".
+
+package_file_to_doc(PackageFile) = docs(
+    [indent([ str(PackageFile ^ pkg_file_uri)
+            , nl
+            , package_tree_to_doc(PackageFile ^ pkg_file_package)
+            ])
+    , nl % this ensures that a list of `package_file' is correctly nested
+    ]).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.package.

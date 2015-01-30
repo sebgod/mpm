@@ -18,6 +18,12 @@
 :- import_module list.
 
 %----------------------------------------------------------------------------%
+%
+% File path handling:
+%
+% * Meta information about Mercury executables
+% * Path resolving and abstraction
+%
 
     % progexe(ProgName, ProgExe, !IO):
     %
@@ -49,6 +55,11 @@
     %
 :- pred make_absolute : resolve_dir_pred `with_inst` resolve_dir_pred.
 
+%----------------------------------------------------------------------------%
+%
+% I/O Error handling helpers
+%
+
     % format_error_res(Fmt, File, Pred, Params) = Result:
     %
     % Creates a `io.res' result with the `error' constructor initalised with
@@ -75,7 +86,7 @@
 
 %----------------------------------------------------------------------------%
 %
-% File path management:
+% Implementation of file path handling
 %
 
 progexe(ProgName, ProgExe, !IO) :-

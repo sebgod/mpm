@@ -25,9 +25,26 @@
 :- func version_to_doc(version) = doc.
 
 %----------------------------------------------------------------------------%
+%
+% Special version constants used by the system:
+%
+%  * invalid package (cannot obtain package information)
+%
+% NOTE: these constants do violate the 'semver' standard on purpose.
+% Code dealing with package information has to check for these constants.
+%
+% NOTE: for all special version strings versions `Major = -1' is true, and
+% the name of the special constant is stored in the `Build' (last) part.
+%
+
+:- func invalid_package_version = version.
+
+%----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
+
+:- import_module mercury_mpm.documentation.
 
 :- import_module list.
 :- import_module string.
@@ -35,13 +52,27 @@
 %----------------------------------------------------------------------------%
 
 version_to_string({Major, Minor, Patch, Pre, Build}) =
-    format("%d.%d.%d%s%s",
-        [i(Major), i(Minor), i(Patch),
-            s(Pre   = "" -> "" ; "-" ++ Pre),
-            s(Build = "" -> "" ; "+" ++ Build)
-        ]).
+    ( if Major = -1 then
+        Build
+    else
+        format("%d.%d.%d%s%s",
+            [i(Major), i(Minor), i(Patch),
+                s(Pre   = "" -> "" ; "-" ++ Pre),
+                s(Build = "" -> "" ; "+" ++ Build)
+            ])
+    ).
 
-version_to_doc(Version) = str(version_to_string(Version)).
+version_to_doc(Version @ {Major, _Minor, _Patch, _Pre, Build}) =
+    ( if Major = -1 then
+        problem(Build)
+    else
+        str(version_to_string(Version))
+    ).
+
+
+%----------------------------------------------------------------------------%
+
+invalid_package_version = {-1,0,0,"","<invalid package>"}.
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.semver.

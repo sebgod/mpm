@@ -38,12 +38,17 @@
 
 :- func error_message_to_doc(string) = doc.
 
+    % Highlights a problem (currently using ANSI colours)
+    %
+:- func problem(string) = doc.
+
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
 :- import_module solutions.
+:- import_module string.        % for `++'/2
 
 %----------------------------------------------------------------------------%
 
@@ -71,7 +76,9 @@ doc_ref_list_to_docs(Detailed, DocRefs) = Docs :-
 error_to_doc(Error) = error_message_to_doc(error_message(Error)).
 
 error_message_to_doc(Message) =
-    group([str("\x1b\[31;1merror: \x1b\[0m"), str(Message)]).
+    group([problem("merror: "), str(Message)]).
+
+problem(String) = str("\x1b\[31;1m" ++ String ++ "\x1b\[0m").
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.documentation.
