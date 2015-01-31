@@ -41,12 +41,14 @@ LIBVER_DEPS_SH  = $(SED) -n -e $(PKG_LIBVER_DEPS_RE)  $<
 PKG_DIST_VER_SH = $(SED) -n -e $(PKG_DIST_VER_RE)     $<
 
 lib%.dep_vars: $(PKG_ROOT)/lib%.package
+	@echo VARS $*: $^
 	@$(eval lib$*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
 	@$(eval lib$*_LIBVER_DEPS := $(shell $(LIBVER_DEPS_SH)))
 	@$(eval lib$*_INSTALL_DIR := \
 		$(MPM_PKG_DIR)/lib$*/$(shell $(PKG_DIST_VER_SH)))
 
 %.dep_vars: $(PKG_ROOT)/%.package
+	@echo VARS $*: $^
 	@$(eval $*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
 	@$(eval $*_LIBVER_DEPS :=$(shell $(LIBVER_DEPS_SH)))
 
@@ -80,13 +82,13 @@ MI_TMPL_SED = $(SED)                                 \
 MI_TMPL_OUT = <$(MI_TMPL) >$@
 MI_TMPL_IMP = :- use_module $(DEP).meta_info.\n
 
-%.meta_info.m :: $(PKG_ROOT)/lib%.package $(MI_TMPL)
+%.meta_info.m: $(PKG_ROOT)/lib%.package lib%.dep_vars $(MI_TMPL)
 	@echo GEN $*.meta_info.m \(library\)
 	$(shell $(MI_TMPL_SED) \
 		-e "s/%IMPORTS/$(foreach DEP,$(lib$*_LIBNAME_DEPS),$(MI_TMPL_IMP))/" \
 		$(MI_TMPL_OUT))
 
-%.meta_info.m :: $(PKG_ROOT)/%.package $(MI_TMPL)
+%.meta_info.m: $(PKG_ROOT)/%.package %.dep_vars $(MI_TMPL)
 	@echo GEN $*.meta_info.m \(executable\)
 	$(shell $(MI_TMPL_SED) \
 		-e "s/%IMPORTS/$(foreach DEP,$($*_LIBNAME_DEPS),$(MI_TMPL_IMP))/" \
