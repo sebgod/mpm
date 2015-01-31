@@ -28,6 +28,7 @@ CC  := $(shell $(MMC) --output-cc)
 CC_TYPE := $(shell $(MMC) --output-cc-type)
 DEL_DIR  := $(RM) -fR
 DEL_FILE := $(RM) -f
+INSTALL_COMPARE := $(INSTALL) --compare
 HARDLINK := $(COPY) -l
 
 # Windows specific overrides
@@ -37,6 +38,7 @@ ifdef WINDIR
 	# TODO: We assume the use of GNU diff if this is the case.
     DIFF_FLAGS += --strip-trailing-cr
     EXE_EXT := .exe
+    INSTALL_COMPARE := fc 1>nul || $(INSTALL)
     KILLALL := taskkill -t -im
     KILLALL_FORCE := taskkill -F  -im
 endif

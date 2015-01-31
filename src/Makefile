@@ -21,7 +21,7 @@ install_share: $(wildcard $(PKG_ROOT)/share/*)
 install_etc: $(wildcard $(PKG_ROOT)/*.options)
 	@echo INSTALL $^
 	@$(MKDIR) -p "$(MPM_ETC_DIR)"
-	@$(INSTALL) -t "$(MPM_ETC_DIR)" --compare --backup=existing -m 644 $^
+	@$(INSTALL_COMPARE) -t "$(MPM_ETC_DIR)" --backup=existing -m 644 $^
 
 .PHONY: install_bin
 install_bin:
