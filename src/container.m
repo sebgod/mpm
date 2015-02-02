@@ -38,7 +38,8 @@
 
 :- implementation.
 
-:- import_module mercury_mpm.package.
+:- import_module mercury_mpm.documentation. % for `error_to_doc'/1
+:- import_module mercury_mpm.package_file.
 :- import_module mercury_mpm.resource.
 
 :- import_module bool.
@@ -58,7 +59,7 @@
 :- type container
     --->    container(
                 container_scm_dir       :: string,
-                container_package_files :: list(package_file)
+                container_package_files :: list(res(package_file))
             ).
 
 find_container_up(DirName, ContainerRes, !IO) :-
@@ -74,8 +75,10 @@ find_container_up(DirName, ContainerRes, !IO) :-
                     PackageFileNamesRes, !IO),
                 (
                     PackageFileNamesRes = ok(PackageFileNames),
-                    map_foldl(from_file, PackageFileNames, PackageFiles, !IO),
-                    ContainerRes = ok(container(ContainerDir, PackageFiles))
+                    map_foldl(from_file, PackageFileNames,
+                        PackageFileResList, !IO),
+                    ContainerRes = ok(container(ContainerDir,
+                        PackageFileResList))
                 ;
                     PackageFileNamesRes = error(_, Error),
                     ContainerRes = error(Error)
@@ -125,7 +128,17 @@ container_to_doc(Container) = indent(
     [ str("git repository: ")
     , str(Container ^ container_scm_dir)
     , nl
-    | map(package_file_to_doc, Container ^ container_package_files)
+    | map(
+        (func(PackageFileRes) = Doc :-
+            (
+                PackageFileRes = ok(PackageFile),
+                Doc = package_file_to_doc(PackageFile)
+            ;
+                PackageFileRes = error(Error),
+                Doc = error_to_doc(Error)
+            )
+        ),
+        Container ^ container_package_files)
     ]).
 
 %----------------------------------------------------------------------------%

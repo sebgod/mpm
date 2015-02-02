@@ -18,9 +18,11 @@
 :- include_module mercury_mpm.command.
 :- include_module mercury_mpm.container.
 :- include_module mercury_mpm.documentation.
+:- include_module mercury_mpm.dcg_parsing.
 :- include_module mercury_mpm.meta_info.
 :- include_module mercury_mpm.option.
 :- include_module mercury_mpm.package.
+:- include_module mercury_mpm.package_file.
 :- include_module mercury_mpm.resource.
 :- include_module mercury_mpm.semver.
 

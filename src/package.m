@@ -12,7 +12,7 @@
 %
 % NOTE: Unless the stability reaches 'high', you should refrain from using
 % this code in production, as the on-disk file format for packages and the
-% tuple to represent the `package' type might change.
+% `package' type might change.
 %----------------------------------------------------------------------------%
 
 :- module mercury_mpm.package.
@@ -21,7 +21,6 @@
 
 :- import_module mercury_mpm.semver.
 
-:- import_module io.
 :- import_module list.
 :- import_module pretty_printer.
 :- import_module univ.
@@ -46,15 +45,6 @@
     %
 :- type dependency == {string, string, univ}.
 
-    % A `package_file' wraps a URI, the `package' reference and other
-    % parsed data (build instructions, etc.)
-    %
-:- type package_file
-    --->    package_file(
-                pkg_file_uri        :: string,
-                pkg_file_package    :: package
-            ).
-
 %----------------------------------------------------------------------------%
 %
 % Package information access functions.
@@ -64,13 +54,15 @@
 
     % Access package name
 :- func package ^ pkg_name = string.
+:- func 'pkg_name :='(package, string) = package.
 
     % Access package version
 :- func package ^ pkg_version = version.
+:- func 'pkg_version :='(package, version) = package.
 
-    % dependencies(Package) = Dependencies:
-    %
-:- func dependencies(package) = dependencies.
+    % Access package dependencies
+:- func package ^ pkg_deps = dependencies.
+:- func 'pkg_deps :='(package, dependencies) = package.
 
     % resolve_dependencies(Package) = Dependencies:
     %
@@ -109,40 +101,25 @@
 :- func package_tree_to_doc(package) = doc.
 
 %----------------------------------------------------------------------------%
-
-    % from_file(FileName, PackageFile, !IO):
-    %
-    % `PackageFile' is parsed from the given `FileName'.
-    %
-:- pred from_file(string::in, package_file::out, io::di, io::uo) is det.
-
-    % package_file_ext = Extension:
-    %
-    % `Extension' is the extension used for Mercury package files,
-    % in the current implementation this is fixed to '.package'.
-    %
-:- func package_file_ext = string.
-
-    % package_file_to_doc(Package) = Doc:
-    %
-:- func package_file_to_doc(package_file) = doc.
-
-%----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
-:- import_module dir.       % for `det_basename'/1
 :- import_module list.
-:- import_module string.    % for `det_remove_suffix'/2
 
 %----------------------------------------------------------------------------%
 
 {Name, _, _} ^ pkg_name = Name.
 
+'pkg_name :='({_, Version, Deps}, Name) = {Name, Version, Deps}.
+
 {_, Version, _} ^ pkg_version = Version.
 
-dependencies({_, _, Dependencies}) = Dependencies.
+'pkg_version :='({Name, _, Deps}, Version) = {Name, Version, Deps}.
+
+({_, _, Dependencies}) ^ pkg_deps = Dependencies.
+
+'pkg_deps :='({Name, Version, _}, Deps) = {Name, Version, Deps}.
 
 %----------------------------------------------------------------------------%
 
@@ -150,10 +127,10 @@ dependencies({_, _, Dependencies}) = Dependencies.
 
 {_, Pattern, _} ^ dep_pattern = Pattern.
 
-{_, _, Univ} ^ dep_package = Package :-
+{Name, Pattern, Univ} ^ dep_package = Package :-
     (
         univ_to_type(Univ, Fun) ->
-        Package = apply(Fun)
+        Package = Fun(Name, Pattern)
     ;
         det_univ_to_type(Univ, Package)
     ).
@@ -161,7 +138,7 @@ dependencies({_, _, Dependencies}) = Dependencies.
 %----------------------------------------------------------------------------%
 
 resolve_dependencies(Package) =
-    map(dep_package, Package ^ dependencies).
+    map(dep_package, Package ^ pkg_deps).
 
 %----------------------------------------------------------------------------%
 
@@ -179,25 +156,6 @@ package_tree_to_doc(Package) = Doc :-
         indent([package_to_doc(Package), nl |
                 map(package_tree_to_doc, Dependencies)])
     ).
-
-%----------------------------------------------------------------------------%
-
-    % TODO: This is just a stub
-from_file(FileName, package_file(FileName, {PkgName, Version, Deps}), !IO) :-
-    PkgName = det_remove_suffix(det_basename(FileName), package_file_ext),
-    Version = invalid_package_version,
-    Deps = [{"libdepend", "0.[1-9].*",
-        univ({"libdepend", invalid_package_version, []} : package)}].
-
-package_file_ext = ".package".
-
-package_file_to_doc(PackageFile) = docs(
-    [indent([ str(PackageFile ^ pkg_file_uri)
-            , nl
-            , package_tree_to_doc(PackageFile ^ pkg_file_package)
-            ])
-    , nl % this ensures that a list of `package_file' is correctly nested
-    ]).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.package.
