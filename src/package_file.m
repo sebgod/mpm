@@ -61,9 +61,9 @@
 :- import_module list.
 :- import_module maybe.     % e.g. for representing optional package data.
 :- import_module string.    % for `det_remove_suffix'/2
-:- import_module term.      % for parsing package files
-:- import_module term_io.   % for parsing package files
-:- import_module univ.      % for package dependencies
+:- import_module term_conversion. % for `term_to_type'/2
+:- import_module term_io.   % used for parsing package files
+:- import_module univ.      % for `univ', used for package dependencies
 
 %----------------------------------------------------------------------------%
 
