@@ -21,21 +21,26 @@
 
 :- type chars == list(char).
 
-:- type parser_pred(T) == pred(T, chars, chars).
-
+:- type parser_pred     == pred(chars, chars).
+:- type parser1_pred(T) == pred(T, chars, chars).
 :- type parser2_pred(T) == pred(T, T, chars, chars).
 
 %----------------------------------------------------------------------------%
 
-:- pred dec_digit : parser_pred(int).
+:- pred dec_digit : parser1_pred(int).
 :- mode dec_digit(uo, mdi, muo) is semidet.
 :- mode dec_digit(uo, di, uo) is semidet.
 :- mode dec_digit(uo, in, out) is semidet.
 
-:- pred dec_unsigned_int : parser_pred(int).
+:- pred dec_unsigned_int : parser1_pred(int).
 :- mode dec_unsigned_int(uo, di, muo) is semidet.
 :- mode dec_unsigned_int(uo, mdi, muo) is semidet.
 :- mode dec_unsigned_int(uo, in, out) is semidet.
+
+:- pred percent_encode_path_chars : parser_pred.
+:- mode percent_encode_path_chars(di, uo) is semidet.
+:- mode percent_encode_path_chars(mdi, muo) is semidet.
+:- mode percent_encode_path_chars(in, out) is semidet.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -76,6 +81,50 @@ dec_unsigned_int_loop(I0, I) -->
     ;
         { I = I0 + 0 }
     ).
+
+percent_encode_path_chars([], []).
+
+percent_encode_path_chars([Char | CharRest], EncodedChars) :-
+    (
+        Char = '%',
+        EncodedChars = ['%', '2', '5' | EncodedRest]
+    ;
+        Char = ' ',
+        EncodedChars = ['%', '2', '0' | EncodedRest]
+    ;   ( Char = ('/') ; Char = ('\\') ),
+        EncodedChars = ['/' | EncodedRest]
+    ;
+        ( Char = '0'; Char = '1'; Char = '2'; Char = '3'; Char = '4'
+        ; Char = '5'; Char = '6'; Char = '7'; Char = '8'; Char = '9'
+        ; Char = 'a'; Char = 'b'; Char = 'c'; Char = 'd'; Char = 'e'
+        ; Char = 'f'; Char = 'g'; Char = 'h'; Char = 'i'; Char = 'j'
+        ; Char = 'k'; Char = 'l'; Char = 'm'; Char = 'n'; Char = 'o'
+        ; Char = 'p'; Char = 'q'; Char = 'r'; Char = 's'; Char = 't'
+        ; Char = 'u'; Char = 'v'; Char = 'w'; Char = 'x'; Char = 'y'
+        ; Char = 'z'
+        ; Char = 'A'; Char = 'B'; Char = 'C'; Char = 'D'; Char = 'E'
+        ; Char = 'F'; Char = 'G'; Char = 'H'; Char = 'I'; Char = 'J'
+        ; Char = 'K'; Char = 'L'; Char = 'M'; Char = 'N'; Char = 'O'
+        ; Char = 'P'; Char = 'Q'; Char = 'R'; Char = 'S'; Char = 'T'
+        ; Char = 'U'; Char = 'V'; Char = 'W'; Char = 'X'; Char = 'Y'
+        ; Char = 'Z'
+        ; Char = '_'; Char = (':') ; Char = ('-') ; Char = ('.')
+        ),
+        char_copy(Char, Unique),
+        EncodedChars = [Unique | EncodedRest]
+    ),
+    percent_encode_path_chars(CharRest, EncodedRest).
+
+:- pred char_copy(char, char).
+:- mode char_copy(di, uo) is det.
+:- mode char_copy(in, uo) is det.
+
+:- pragma inline(char_copy/2).
+:- pragma promise_equivalent_clauses(char_copy/2).
+
+char_copy(Char::di, Char::uo).
+char_copy(Char::in, Unique::uo) :-
+    Unique = unsafe_promise_unique(det_from_int(to_int(Char) + 0)).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.dcg_parsing.

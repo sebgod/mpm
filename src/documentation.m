@@ -24,13 +24,16 @@
 
 :- typeclass doc_ref(T) where [
     func to_doc(T) = doc,
-    func to_string(T) = string,
+    func to_string(T) = string
+].
+
+:- typeclass doc_ref_values(T) <= doc_ref(T) where [
     (pred values(T::out) is multi)
 ].
 
 :- type detail == bool.
 
-:- func doc_ref_values = list(T) <= doc_ref(T).
+:- func doc_ref_values = list(T) <= doc_ref_values(T).
 
 :- func doc_ref_list_to_docs(detail, list(T)) = docs <= doc_ref(T).
 

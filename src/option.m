@@ -29,6 +29,7 @@
     .
 
 :- instance doc_ref(option).
+:- instance doc_ref_values(option).
 
 :- pred short_option(char::in, option::out) is semidet.
 
@@ -50,7 +51,10 @@
 
 :- instance doc_ref(option) where [
     (func(to_doc/1) is option_to_doc),
-    (to_string(Option) = Name :- long_option_table(Name, Option)),
+    (to_string(Option) = Name :- long_option_table(Name, Option))
+].
+
+:- instance doc_ref_values(option) where [
     (values(Option) :- long_option_table(_, Option))
 ].
 

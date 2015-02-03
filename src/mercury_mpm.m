@@ -25,6 +25,7 @@
 :- include_module mercury_mpm.package_file.
 :- include_module mercury_mpm.resource.
 :- include_module mercury_mpm.semver.
+:- include_module mercury_mpm.uri.
 
 %----------------------------------------------------------------------------%
 

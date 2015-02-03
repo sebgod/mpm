@@ -88,7 +88,7 @@ string_to_version(VersionString, Version) :-
         parse_version(Version, Chars, [])
     ).
 
-:- pred parse_version : parser_pred(version).
+:- pred parse_version : parser1_pred(version).
 :- mode parse_version(uo, di, muo) is semidet.
 :- mode parse_version(uo, mdi, muo) is semidet.
 :- mode parse_version(uo, in, out) is semidet.

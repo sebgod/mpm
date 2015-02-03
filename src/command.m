@@ -23,6 +23,7 @@
 %----------------------------------------------------------------------------%
 
 :- instance doc_ref(cmd).
+:- instance doc_ref_values(cmd).
 
     % for a documentation of these types,
     % please refer to `cmd_to_docs'/1 in this module.
@@ -47,7 +48,10 @@
 
 :- instance doc_ref(cmd) where [
     (func(to_doc/1) is cmd_to_doc),
-    (func(to_string/1) is cmd_to_string),
+    (func(to_string/1) is cmd_to_string)
+].
+
+:- instance doc_ref_values(cmd) where [
     (values(Cmd) :- parse_cmd(Cmd, _, []))
 ].
 
