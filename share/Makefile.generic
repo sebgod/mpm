@@ -41,16 +41,17 @@ LIBVER_DEPS_SH  = $(SED) -n -e $(PKG_LIBVER_DEPS_RE)  $<
 PKG_DIST_VER_SH = $(SED) -n -e $(PKG_DIST_VER_RE)     $<
 
 lib%.dep_vars: $(PKG_ROOT)/lib%.package
-	@echo VARS $*: $^
+	@echo VARS $*: lib$*
 	@$(eval lib$*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
 	@$(eval lib$*_LIBVER_DEPS := $(shell $(LIBVER_DEPS_SH)))
-	@$(eval lib$*_INSTALL_DIR := \
-		$(MPM_PKG_DIR)/lib$*/$(shell $(PKG_DIST_VER_SH)))
+	@$(eval lib$*_DIST_VER := $(shell $(PKG_DIST_VER_SH)))
+	@$(eval lib$*_INSTALL_DIR := $(MPM_PKG_DIR)/lib$*/$(lib$*_DIST_VER))
 
 %.dep_vars: $(PKG_ROOT)/%.package
-	@echo VARS $*: $^
+	@echo VARS $*: $*
 	@$(eval $*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
 	@$(eval $*_LIBVER_DEPS :=$(shell $(LIBVER_DEPS_SH)))
+	@$(eval $*_DIST_VER := $(shell $(PKG_DIST_VER_SH)))
 
 # Build the local version of the library if provided by this package.
 # This is ensured by the meta_info.m rules, which depends on lib%.package
@@ -94,12 +95,19 @@ MI_TMPL_IMP = :- use_module $(DEP).meta_info.\n
 		-e "s/%IMPORTS/$(foreach DEP,$($*_LIBNAME_DEPS),$(MI_TMPL_IMP))/" \
 		$(MI_TMPL_OUT))
 
-# XXX: This rule comes last since it might be a (unwanted) catch-call rule
+# XXX: These rules comes last since it might be a (unwanted) catch-call rule
 # XXX: The dependency analysis used in this rule is temporary, and
 # SHOULD be done by mpm, e.g. %$(EXE_EXT): $(%_DEPS) ...
+
 %$(EXE_EXT): %.dep_vars %.meta_info.m Mercury.modules
 	@echo MMC --make $* deps: $($*_LIBVER_DEPS)
 	@$(MMC) --make $* \
 		$(foreach DEP,$($*_LIBVER_DEPS),\
 			--mld "$(MPM_PKG_DIR)/$(DEP)/lib/mercury") \
 		$(foreach LIB,$($*_LIBNAME_DEPS),--ml $(LIB))
+
+%.install: %$(EXE_EXT) %.dep_vars
+	@echo INSTALL $*
+	@$(MKDIR) -p "$(MPM_BIN_DIR)"
+	@$(INSTALL) -t "$(MPM_BIN_DIR)" $<
+	@$(INSTALL) $< "$(MPM_BIN_DIR)/$*-$($*_DIST_VER)$(EXE_EXT)"

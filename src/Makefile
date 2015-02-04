@@ -24,9 +24,7 @@ install_etc: $(wildcard $(PKG_ROOT)/*.options)
 
 .PHONY: install_bin
 install_bin:
-	@echo INSTALL mpm
-	@$(MKDIR) -p "$(MPM_BIN_DIR)"
-	@$(INSTALL) -t "$(MPM_BIN_DIR)" "$(PKG_ROOT)/src/bin/mpm$(EXE_EXT)"
+	@cd bin && $(MAKE) install
 
 .PHONY: clean
 clean:
