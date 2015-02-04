@@ -1,3 +1,5 @@
 version("0.2.1").
 
+src_dir("src/bin").
+
 dep("libmercury_mpm","0.4.0").
