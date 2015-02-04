@@ -2,7 +2,7 @@ include Make.options
 
 .PHONY: default
 default:
-	cd src && $(MAKE) lib_exe
+	cd src && $(MAKE) default
 
 .PHONY: install
 install:
