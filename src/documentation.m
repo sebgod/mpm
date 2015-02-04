@@ -8,7 +8,7 @@
 % Stability: low
 %----------------------------------------------------------------------------%
 % Adds support for documentation functions to `libmercury_mpm',
-% espacially for the command line interface.
+% especially for the command line interface.
 %----------------------------------------------------------------------------%
 
 :- module mercury_mpm.documentation.
@@ -41,7 +41,7 @@
 
 :- func error_message_to_doc(string) = doc.
 
-    % Highlights a problem (currently using ANSI colours)
+    % Highlights a problem (red and bold)
     %
 :- func problem(string) = doc.
 
@@ -79,9 +79,27 @@ doc_ref_list_to_docs(Detailed, DocRefs) = Docs :-
 error_to_doc(Error) = error_message_to_doc(error_message(Error)).
 
 error_message_to_doc(Message) =
-    group([problem("merror: "), str(Message)]).
+    group([problem("error: "), str(Message)]).
 
-problem(String) = str("\x1b\[31;1m" ++ String ++ "\x1b\[0m").
+problem(String) = str(format_em(format_red(String))).
+
+%----------------------------------------------------------------------------%
+%
+% Text property functions, currently implemented using ANSI escape codes:
+% https://en.wikipedia.org/wiki/ANSI_escape_code
+% TODO: Check if we are actually on an ANSI escape code compatible console,
+% under Linux this should be almost a given, under Windows check if the
+% CON_EMU variable is set.
+% TODO: Maybe merge coloured_pretty_printer.m functionality here.
+%
+
+:- func format_em(string) = string.
+
+format_em(String) = "\x1b\[1m" ++ String ++ "\x1b\[22m".
+
+:- func format_red(string) = string.
+
+format_red(String) = "\x1b\[31m" ++ String ++ "\x1b\[39m".
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.documentation.
