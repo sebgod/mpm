@@ -69,61 +69,57 @@
 
 cli_main(ProgName, ProgPackage, Args, !IO) :-
     progroot(ProgName, ProgRootRes, !IO),
+    progexe(ProgName, ProgExe, !IO),
     (
         ProgRootRes = ok(ProgRoot),
         OptionOps = option_ops_multi(short_option, long_option,
-            option_default),
+            option_default(ProgRoot)),
         process_options(OptionOps, Args, ProcessedArgs, Result),
         (
             Result = ok(OptionTable),
 
             lookup_bool_option(OptionTable, help, ShowHelp),
             lookup_bool_option(OptionTable, version, ShowVersion),
+            lookup_bool_option(OptionTable, installed, Installed),
             ( if
                 ShowVersion = no,
                 parse_cmd(Cmd, ProcessedArgs, _CmdArgs)
             then
                 (
                     ShowHelp = yes,
-                    Doc = make_docs(doc_ref_list_to_docs(ShowHelp, [Cmd]))
+                    Action = show_cmd_usage(ShowHelp, Cmd)
                 ;
                     ShowHelp = no,
                     (
                         Cmd = list,
-                        lookup_bool_option(OptionTable, installed, Installed),
                         (
                             Installed = yes,
-                            Doc = make_doc(str("listing installed packages"))
+                            Action = list_installed_packages
                         ;
                             Installed = no,
-                            find_container_up(this_directory, ContainerRes,
-                                !IO),
-                            (
-                                ContainerRes = ok(Container),
-                                Doc = make_doc(container_to_doc(Container))
-                            ;
-                                ContainerRes = io.error(Error),
-                                Doc = make_doc(Error)
-                            )
+                            Action = list_current_container_packages
                         )
                     ;
                         Cmd = build,
-                        Doc = make_doc(str("building local packages"))
+                        Action = build_current_container_packages
                     )
                 )
-            else if ShowVersion = yes then
-                Doc = make_doc(package_tree_to_doc(ProgPackage))
+            else if
+                ShowVersion = yes
+            then
+                Action = show_package_tree(ProgPackage)
             else
-                Doc = make_doc(prog_usage_to_doc(ShowHelp, ProgPackage))
+                Action = show_proc_usage(ShowHelp, ProgExe)
             )
         ;
             Result = error(ErrorMessage),
-            Doc = make_doc(make_io_error(ErrorMessage))
+            Action = show_error_message(ErrorMessage)
         )
     ;
         ProgRootRes = error(Error),
-        Doc = make_doc(Error)
+        Action = show_io_error(Error)
     ),
+    Action(Doc, !IO),
     write_doc(Doc, !IO),
     ( if is_stderr(Doc) then
         io.set_exit_status(1, !IO)
@@ -131,31 +127,78 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
         true
     ).
 
-%----------------------------------------------------------------------------%
+:- type cli_pred == pred(doc_stream_nl_tuple, io, io).
+:- inst cli_pred == (pred(out, di, uo) is det).
 
-    % prog_usage_to_doc(Detailed, ProgPackage) = Doc:
+:- pred list_current_container_packages : cli_pred `with_inst` cli_pred.
+
+list_current_container_packages(Doc, !IO) :-
+    find_container_up(this_directory, ContainerRes, !IO),
+    (
+        ContainerRes = ok(Container),
+        Doc = make_doc(container_to_doc(Container))
+    ;
+        ContainerRes = io.error(Error),
+        Doc = make_doc(Error)
+    ).
+
+:- pred list_installed_packages : cli_pred `with_inst` cli_pred.
+
+list_installed_packages(Doc, !IO) :-
+    Doc = make_doc(str("listing installed packages")).
+
+:- pred build_current_container_packages : cli_pred `with_inst` cli_pred.
+
+build_current_container_packages(Doc, !IO) :-
+    Doc = make_doc(str("building local packages")).
+
+:- pred show_package_tree(package) : cli_pred.
+:- mode show_package_tree(in) `with_inst` cli_pred.
+
+show_package_tree(Package, Doc, !IO) :-
+    Doc = make_doc(package_tree_to_doc(Package)).
+
+    % show_proc_usage(Detailed, ProgPackage) = Doc:
     %
     % Documents the command line interface of the `ProgPackage' executable,
     % with detailed help for each command and option if `Detailed' is 'yes'.
     %
-:- func prog_usage_to_doc(bool, package) = doc.
+:- pred show_proc_usage(bool, string) : cli_pred.
+:- mode show_proc_usage(in, in) `with_inst` cli_pred.
 
-prog_usage_to_doc(Detailed, ProgPackage) = docs(Docs) :-
+show_proc_usage(Detailed, ProgExe, Doc, !IO) :-
     CmdDocs =
         doc_ref_list_to_docs(Detailed, doc_ref_values : list(cmd)),
     OptionDocs =
         doc_ref_list_to_docs(Detailed, doc_ref_values : list(option)),
-    Name = ProgPackage ^ pkg_name,
-    Docs = [
+    Doc = make_docs([
         hard_nl,
-        str(format("usage: %s ?[option] ?<command>", [s(Name)])), hard_nl,
+        str(format("usage: %s ?[option] ?<command>", [s(ProgExe)])), hard_nl,
         hard_nl,
         str("where <command> is one of:"),
         indent([nl | CmdDocs]),
         hard_nl,
         str("where <option> is one of:"),
         indent([nl | OptionDocs])
-    ].
+    ]).
+
+:- pred show_cmd_usage(bool, cmd) : cli_pred.
+:- mode show_cmd_usage(in, in) `with_inst` cli_pred.
+
+show_cmd_usage(Detailed, Cmd, Doc, !IO) :-
+    Doc = make_docs(doc_ref_list_to_docs(Detailed, [Cmd])).
+
+:- pred show_error_message(string) : cli_pred.
+:- mode show_error_message(in) `with_inst` cli_pred.
+
+show_error_message(ErrorMessage, Doc, !IO) :-
+    show_io_error(make_io_error(ErrorMessage), Doc, !IO).
+
+:- pred show_io_error(io.error) : cli_pred.
+:- mode show_io_error(in) `with_inst` cli_pred.
+
+show_io_error(IOError, Doc, !IO) :-
+    Doc = make_doc(IOError).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.cli.

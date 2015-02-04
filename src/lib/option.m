@@ -39,7 +39,7 @@
     %
 :- pred long_option(string::in, option::out) is semidet.
 
-:- pred option_default(option::out, option_data::out) is multi.
+:- pred option_default(string::in, option::out, option_data::out) is multi.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -71,24 +71,16 @@ short_option(v, version).
 
 long_option(Name, Option) :- long_option_table(Name, Option).
 
-option_default(Option, Default) :- option_default_table(Option, Default).
-
-:- pred option_default_table(option, option_data).
-:- mode option_default_table(in, out) is det.
-:- mode option_default_table(out, out) is multi.
-
-option_default_table(help, bool(no)).
-option_default_table(debug, bool(no)).
-option_default_table(install_prefix, maybe_string(no)).
-option_default_table(installed, bool(no)).
-option_default_table(version, bool(no)).
+option_default(_Root, help, bool(no)).
+option_default(_Root, debug, bool(no)).
+option_default(Root, install_prefix, string(Root)).
+option_default(_Root, installed, bool(no)).
+option_default(_Root, version, bool(no)).
 
 :- func option_to_doc(option) = doc.
 
-option_to_doc(Option) = group([str(Help), str(": "), DefaultDoc]) :-
-    option_help(Option, Help),
-    option_default_table(Option, Default),
-    DefaultDoc = format(Default).
+option_to_doc(Option) = str(Help) :-
+    option_help(Option, Help).
 
 :- pred option_help(option, string).
 :- mode option_help(in, out) is det.
