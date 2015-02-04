@@ -15,13 +15,13 @@ install: default install_share install_etc install_bin
 install_share: $(wildcard $(PKG_ROOT)/share/*)
 	@echo INSTALL $^
 	@$(MKDIR) -p "$(MPM_SHARE_DIR)"
-	@$(INSTALL) -t "$(MPM_SHARE_DIR)" -p -m 644 $^
+	@$(INSTALL_FILES) -t "$(MPM_SHARE_DIR)" -p $^
 
 .PHONY: install_etc
 install_etc: $(wildcard $(PKG_ROOT)/*.options)
 	@echo INSTALL $^
 	@$(MKDIR) -p "$(MPM_ETC_DIR)"
-	@$(INSTALL_COMPARE) -t "$(MPM_ETC_DIR)" --backup=existing -m 644 $^
+	@$(INSTALL_FILES_COMPARE) -t "$(MPM_ETC_DIR)" --backup=existing $^
 
 .PHONY: install_bin
 install_bin:

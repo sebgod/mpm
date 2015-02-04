@@ -1,6 +1,6 @@
 # (quasi)-standard Unix tools
 CAT := cat
-COPY := cp -u -f
+CP := cp
 CURL := curl
 CURL_FLAGS := -s -L
 DATE := date
@@ -24,21 +24,24 @@ EXE_EXT :=
 OBJ_EXT := .o
 
 # composed common variables
-CC  := $(shell $(MMC) --output-cc)
-CC_TYPE := $(shell $(MMC) --output-cc-type)
+CC       := $(shell $(MMC) --output-cc)
+CC_TYPE  := $(shell $(MMC) --output-cc-type)
 DEL_DIR  := $(RM) -fR
 DEL_FILE := $(RM) -f
-INSTALL_COMPARE := $(INSTALL) --compare
-HARDLINK := $(COPY) -l
+INSTALL_FILES := $(INSTALL) -m 644
+INSTALL_FILES_COMPARE := $(INSTALL_FILES) --compare
+HARDLINK := $(CP) -u -f -l
 
 # Windows specific overrides
 ifdef WINDIR
-	# The expected outputs do not use CRLF line endings,
-	# so if we are on Windows we need to account for this.
-	# TODO: We assume the use of GNU diff if this is the case.
+    # The expected outputs do not use CRLF line endings,
+    # so if we are on Windows we need to account for this.
+    # TODO: We assume the use of GNU diff if this is the case.
     DIFF_FLAGS += --strip-trailing-cr
     EXE_EXT := .exe
-    INSTALL_COMPARE := fc 1>nul || $(INSTALL)
+    # TODO This is slightly different from install --compare
+    # since --compare also copies if the date is older
+    INSTALL_FILES_COMPARE := $(CP) -u
     KILLALL := taskkill -t -im
     KILLALL_FORCE := taskkill -F  -im
 endif
