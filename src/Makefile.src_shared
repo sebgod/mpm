@@ -1,7 +1,7 @@
 include $(PKG_ROOT)/Make.options
 include $(PKG_ROOT)/mpm.options
 
-MI_TMPL := $(PKG_ROOT)/share/meta_info.template
+MI_TMPL := $(PKG_ROOT)/src/share/meta_info.template
 
 .PHONY: clean
 clean:
@@ -29,4 +29,4 @@ realclean:
 	@$(DEL_FILE) $(wildcard *.meta_info.m)
 	@$(DEL_DIR) *.beams
 
-include $(PKG_ROOT)/share/Makefile.generic
+include $(PKG_ROOT)/src/share/Makefile.generic

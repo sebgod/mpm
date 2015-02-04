@@ -41,14 +41,14 @@ LIBVER_DEPS_SH  = $(SED) -n -e $(PKG_LIBVER_DEPS_RE)  $<
 PKG_DIST_VER_SH = $(SED) -n -e $(PKG_DIST_VER_RE)     $<
 
 lib%.dep_vars: $(PKG_ROOT)/lib%.package
-	@echo VARS $*: lib$*
+	@echo VARS lib$* from $<
 	@$(eval lib$*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
 	@$(eval lib$*_LIBVER_DEPS := $(shell $(LIBVER_DEPS_SH)))
 	@$(eval lib$*_DIST_VER := $(shell $(PKG_DIST_VER_SH)))
 	@$(eval lib$*_INSTALL_DIR := $(MPM_PKG_DIR)/lib$*/$(lib$*_DIST_VER))
 
 %.dep_vars: $(PKG_ROOT)/%.package
-	@echo VARS $*: $*
+	@echo VARS $* from $<
 	@$(eval $*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
 	@$(eval $*_LIBVER_DEPS :=$(shell $(LIBVER_DEPS_SH)))
 	@$(eval $*_DIST_VER := $(shell $(PKG_DIST_VER_SH)))

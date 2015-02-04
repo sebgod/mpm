@@ -11,7 +11,7 @@ default:
 install: default install_share install_etc install_bin
 
 .PHONY: install_share
-install_share: $(wildcard $(PKG_ROOT)/share/*)
+install_share: $(wildcard $(PKG_ROOT)/src/share/*)
 	@echo INSTALL $^
 	@$(MKDIR) -p "$(MPM_SHARE_DIR)"
 	@$(INSTALL_FILES) -t "$(MPM_SHARE_DIR)" -p $^
