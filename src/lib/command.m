@@ -22,21 +22,21 @@
 
 %----------------------------------------------------------------------------%
 
-:- instance docable(cmd).
-:- instance doc_ref(cmd).
-:- instance doc_ref_values(cmd).
+:- instance docable(command).
+:- instance doc_ref(command).
+:- instance doc_ref_values(command).
 
     % for a documentation of these types,
-    % please refer to `cmd_to_docs'/1 in this module.
+    % please refer to `command_to_docs'/1 in this module.
     %
-:- type cmd
+:- type command
     --->    list
     ;       build.
 
-:- pred parse_cmd(cmd, list(string), list(string)).
-:- mode parse_cmd(out, in, out) is semidet.
-:- mode parse_cmd(in, out(non_empty_list), in) is det.
-:- mode parse_cmd(out, out(non_empty_list), in) is multi.
+:- pred parse_command(command, list(string), list(string)).
+:- mode parse_command(out, in, out) is semidet.
+:- mode parse_command(in, out(non_empty_list), in) is det.
+:- mode parse_command(out, out(non_empty_list), in) is multi.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -47,30 +47,30 @@
 
 %----------------------------------------------------------------------------%
 
-:- instance docable(cmd) where [
-    (func(to_doc/1) is cmd_to_doc)
+:- instance docable(command) where [
+    (func(to_doc/1) is command_to_doc)
 ].
 
-:- instance doc_ref(cmd) where [
-    (func(to_string/1) is cmd_to_string)
+:- instance doc_ref(command) where [
+    (func(to_string/1) is command_to_string)
 ].
 
-:- instance doc_ref_values(cmd) where [
-    (values(Cmd) :- parse_cmd(Cmd, _, []))
+:- instance doc_ref_values(command) where [
+    (values(Command) :- parse_command(Command, _, []))
 ].
 
-parse_cmd(list)  --> ["list"].
-parse_cmd(build) --> ["build"].
+parse_command(list)  --> ["list"].
+parse_command(build) --> ["build"].
 
-:- func cmd_to_string(cmd) = string.
+:- func command_to_string(command) = string.
 
-cmd_to_string(Cmd) = String :-
-    parse_cmd(Cmd, [String | _], []).
+command_to_string(Command) = String :-
+    parse_command(Command, [String | _], []).
 
-:- func cmd_to_doc(cmd) = doc.
+:- func command_to_doc(command) = doc.
 
-cmd_to_doc(list)  = str("list dependencies of ?[packages]").
-cmd_to_doc(build) = str("builds ?[local packages]").
+command_to_doc(list)  = str("list dependencies of ?[packages]").
+command_to_doc(build) = str("builds ?[local packages]").
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.command.

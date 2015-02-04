@@ -83,15 +83,15 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
             lookup_bool_option(OptionTable, installed, Installed),
             ( if
                 ShowVersion = no,
-                parse_cmd(Cmd, ProcessedArgs, _CmdArgs)
+                parse_command(Command, ProcessedArgs, _CommandArgs)
             then
                 (
                     ShowHelp = yes,
-                    Action = show_cmd_usage(ShowHelp, Cmd)
+                    Action = show_command_usage(ShowHelp, Command)
                 ;
                     ShowHelp = no,
                     (
-                        Cmd = list,
+                        Command = list,
                         (
                             Installed = yes,
                             Action = list_installed_packages
@@ -100,7 +100,7 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
                             Action = list_current_container_packages
                         )
                     ;
-                        Cmd = build,
+                        Command = build,
                         Action = build_current_container_packages
                     )
                 )
@@ -167,8 +167,8 @@ show_package_tree(Package, Doc, !IO) :-
 :- mode show_proc_usage(in, in) `with_inst` cli_pred.
 
 show_proc_usage(Detailed, ProgExe, Doc, !IO) :-
-    CmdDocs =
-        doc_ref_list_to_docs(Detailed, doc_ref_values : list(cmd)),
+    CommandDocs =
+        doc_ref_list_to_docs(Detailed, doc_ref_values : list(command)),
     OptionDocs =
         doc_ref_list_to_docs(Detailed, doc_ref_values : list(option)),
     Doc = make_docs([
@@ -176,17 +176,17 @@ show_proc_usage(Detailed, ProgExe, Doc, !IO) :-
         str(format("usage: %s ?[option] ?<command>", [s(ProgExe)])), hard_nl,
         hard_nl,
         str("where <command> is one of:"),
-        indent([nl | CmdDocs]),
+        indent([nl | CommandDocs]),
         hard_nl,
         str("where <option> is one of:"),
         indent([nl | OptionDocs])
     ]).
 
-:- pred show_cmd_usage(bool, cmd) : cli_pred.
-:- mode show_cmd_usage(in, in) `with_inst` cli_pred.
+:- pred show_command_usage(bool, command) : cli_pred.
+:- mode show_command_usage(in, in) `with_inst` cli_pred.
 
-show_cmd_usage(Detailed, Cmd, Doc, !IO) :-
-    Doc = make_docs(doc_ref_list_to_docs(Detailed, [Cmd])).
+show_command_usage(Detailed, Command, Doc, !IO) :-
+    Doc = make_docs(doc_ref_list_to_docs(Detailed, [Command])).
 
 :- pred show_error_message(string) : cli_pred.
 :- mode show_error_message(in) `with_inst` cli_pred.
