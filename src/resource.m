@@ -27,8 +27,11 @@
 
     % progexe(ProgName, ProgExe, !IO):
     %
+    % `ProgName' is (relative) path of the executable, see
+    % `io.progname'/4 for details
+    %
     % `ProgExe' is the name of the program `ProgName' with stripped
-    % directory part.
+    % directory part
     %
     % Fails if the `io.basename'/1 could not be obtained.
     %
@@ -40,7 +43,18 @@
     %
 :- pred progdir(string::in, string::out, io::di, io::uo) is det.
 
-    % `resolve_dir_pred' is for resolving special directories
+    % progroot(ProgName, ProgRoot, !IO):
+    %
+    % `ProgName' is (relative) path of the executable, see
+    % `io.progname'/4 for details
+    %
+    % `ProgRoot' is the parent directory of the directory the current
+    % executing program resides in.
+    %
+:- pred progroot(string::in, res(string)::out, io::di, io::uo) is det.
+
+
+    % `resolve_dir_pred' is a predicate type for resolving special directories
     % like '.' or '..' to enable a unified path handling.
     %
 :- type resolve_dir_pred == pred(string, res(string), io, io).
@@ -62,7 +76,7 @@
 
     % format_error_res(Fmt, File, Pred, Params) = Result:
     %
-    % Creates a `io.res' result with the `error' constructor initalised with
+    % Creates a `io.res' result with the `error' constructor initialised with
     % a formatted error message, obtained using:
     % format_error(Fmt, File, Pred, Params)
     %
@@ -94,8 +108,25 @@ progexe(ProgName, ProgExe, !IO) :-
 
 progdir(ProgName, dirname(ProgName), !IO).
 
+progroot(ProgName, ProgRootRes, !IO) :-
+    ( if ProgName \= "" then
+        progdir(ProgName, ProgDir, !IO),
+        make_absolute(ProgDir, AbsProgDirRes, !IO),
+        (
+            AbsProgDirRes = ok(AbsProgDir),
+            dirname(AbsProgDir, ProgRoot),
+            ProgRootRes = ok(ProgRoot)
+        ;
+            AbsProgDirRes = error(Error),
+            ProgRootRes = error(Error)
+        )
+    else
+        ProgRootRes =
+            format_error_res("program name is empty", $file, $pred, [])
+    ).
+
 make_absolute(DirName, AbsDirNameRes, !IO) :-
-    resolve_special(DirName, NoSpecialRes, !IO),
+    resolve_special(DirName , NoSpecialRes, !IO),
     ( if
         NoSpecialRes = ok(NoSpecialDirName),
         path_name_is_absolute(NoSpecialDirName)
@@ -131,7 +162,6 @@ resolve_special(DirName, NoSpecialRes, !IO) :-
     else
         NoSpecialRes = ok(DirName)
     ).
-
 
 %----------------------------------------------------------------------------%
 %

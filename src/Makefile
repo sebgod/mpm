@@ -6,10 +6,13 @@ include $(PKG_ROOT)/mpm.options
 MI_TMPL := $(PKG_ROOT)/share/meta_info.template
 
 .PHONY: default
-default: libmercury_mpm mpm$(EXE_EXT)
+default: mpm$(EXE_EXT)
+
+.PHONY: lib_exe
+lib_exe: libmercury_mpm mpm$(EXE_EXT)
 
 .PHONY: install
-install: default install_share install_etc install_bin
+install: lib_exe install_share install_etc install_bin
 
 .PHONY: install_share
 install_share: $(wildcard $(PKG_ROOT)/share/*)
@@ -53,5 +56,6 @@ realclean:
 	@$(DEL_FILE) $(wildcard *.mh)
 	@echo RM *.meta_info.m
 	@$(DEL_FILE) $(wildcard *.meta_info.m)
+	@$(DEL_DIR) *.beams
 
 include $(PKG_ROOT)/share/Makefile.generic

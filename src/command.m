@@ -22,6 +22,7 @@
 
 %----------------------------------------------------------------------------%
 
+:- instance docable(cmd).
 :- instance doc_ref(cmd).
 :- instance doc_ref_values(cmd).
 
@@ -46,8 +47,11 @@
 
 %----------------------------------------------------------------------------%
 
+:- instance docable(cmd) where [
+    (func(to_doc/1) is cmd_to_doc)
+].
+
 :- instance doc_ref(cmd) where [
-    (func(to_doc/1) is cmd_to_doc),
     (func(to_string/1) is cmd_to_string)
 ].
 

@@ -22,24 +22,56 @@
 
 %----------------------------------------------------------------------------%
 
-:- typeclass doc_ref(T) where [
-    func to_doc(T) = doc,
+:- type doc_stream_nl_tuple == {doc, text_output_stream, bool}.
+
+:- typeclass docable(T) where [
+    func to_doc(T) = doc
+].
+
+:- typeclass doc_or_error(T) <= docable(T) where [
+    pred is_error(T::in) is semidet
+].
+
+:- typeclass doc_ref(T) <= docable(T) where [
     func to_string(T) = string
 ].
 
 :- typeclass doc_ref_values(T) <= doc_ref(T) where [
-    (pred values(T::out) is multi)
+    pred values(T::out) is multi
 ].
+
+:- instance docable(doc).
+:- instance doc_or_error(doc).
+
+:- instance docable(io.error).
+:- instance doc_or_error(io.error).
+
+:- pred is_stderr(doc_stream_nl_tuple::in) is semidet.
+
+:- func make_docs(list(doc)) = doc_stream_nl_tuple.
+
+:- func make_doc(T) = doc_stream_nl_tuple <= doc_or_error(T).
+
+    % write_doc_opt_nl(Docable, !IO):
+    %
+    % writes `Docable' to 'stdout' or 'stderr' depending if 'is_error'/1 is
+    % true, with a consecutive newline if needed.
+    %
+:- pred write_doc_opt_nl(T::in, io::di, io::uo) is det <= doc_or_error(T).
+
+    % write_doc({Doc, Stream, Nl}, !IO):
+    %
+    % writes the `Doc' to `Stream' and adds a newline if `Nl' is 'yes'.
+    %
+:- pred write_doc(doc_stream_nl_tuple::in, io::di, io::uo) is det.
+
+:- func error_to_doc(io.error) = doc.
 
 :- type detail == bool.
 
 :- func doc_ref_values = list(T) <= doc_ref_values(T).
 
 :- func doc_ref_list_to_docs(detail, list(T)) = docs <= doc_ref(T).
-
-:- func error_to_doc(io.error) = doc.
-
-:- func error_message_to_doc(string) = doc.
 
     % Highlights a problem (red and bold)
     %
@@ -52,13 +84,57 @@
 
 :- import_module solutions.
 :- import_module string.        % for `++'/2
+:- import_module std_util.      % for `id'/1
+
+%----------------------------------------------------------------------------%
+
+:- instance docable(doc) where [
+    (func(to_doc/1) is std_util.id)
+].
+
+:- instance doc_or_error(doc) where [
+    (is_error(_) :- false)
+].
+
+:- instance docable(io.error) where [
+    (func(to_doc/1) is error_to_doc)
+].
+
+:- instance doc_or_error(io.error) where [
+    (is_error(_) :- true)
+].
+
+is_stderr({_, stderr_stream, _}).
+
+make_docs(Docs) = make_doc(docs(Docs)).
+
+make_doc(Docable) =
+    { to_doc(Docable)
+    , (is_error(Docable) -> stderr_stream ; stdout_stream)
+    , yes  % TODO: Optional newline detection
+    }.
+
+error_to_doc(Error) =
+    group([problem("error: "), str(error_message(Error))]).
+
+write_doc_opt_nl(Docable, !IO) :-
+   write_doc(make_doc(Docable), !IO).
+
+write_doc({Doc, Stream, Nl}, !IO) :-
+    write_doc(Stream, Doc, !IO),
+    (
+        Nl = yes,
+        nl(Stream, !IO)
+    ;
+        Nl = no
+    ).
 
 %----------------------------------------------------------------------------%
 
 doc_ref_values = solutions(values).
 
 doc_ref_list_to_docs(Detailed, DocRefs) = Docs :-
-    (
+     (
         Detailed = yes,
         FmtFunc =
             (func(DocRef) =
@@ -75,11 +151,6 @@ doc_ref_list_to_docs(Detailed, DocRefs) = Docs :-
         OptNl = [nl]
     ),
     Docs = map(FmtFunc, DocRefs) ++ OptNl.
-
-error_to_doc(Error) = error_message_to_doc(error_message(Error)).
-
-error_message_to_doc(Message) =
-    group([problem("error: "), str(Message)]).
 
 problem(String) = str(format_em(format_red(String))).
 

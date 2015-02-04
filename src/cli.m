@@ -10,7 +10,7 @@
 % This module implements the command line interface for the `mercury_mpm'
 % library.
 %
-% The main entry point is `cli_main'/4, which provides all public API
+% The main entry point is `cli_main'/5, which provides all public API
 % functionality through a command line interface.
 % This helps to loosely embed package management functionality into other
 % applications without fully implementing all `mercury_mpm' functionality.
@@ -27,18 +27,22 @@
 
 %----------------------------------------------------------------------------%
 
-    % cli_main(ProgPackage, Args, !IO):
+    % cli_main(ProgName, ProgPackage, Args, !IO):
     %
     % The reference implementation of the Mercury package manager
     % command line tool, where:
     %
+    % `ProgName' is the name of the currently running program, usually
+    % obtained via `io.progname'/4
+    %
     % `ProgPackage' is the package reference to the currently running
-    % executable.
+    % executable
     %
     % `Args' is a list of valid command line arguments, usually obtained by
-    % calling `io.command_line_arguments'/3.
+    % calling `io.command_line_arguments'/3
     %
-:- pred cli_main(package::in, list(string)::in, io::di, io::uo) is det.
+:- pred cli_main(string::in, package::in, list(string)::in, io::di, io::uo)
+    is det.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -63,55 +67,69 @@
 
 %----------------------------------------------------------------------------%
 
-cli_main(ProgPackage, Args, !IO) :-
-    OptionOps = option_ops_multi(short_option, long_option, option_default),
-    process_options(OptionOps, Args, ProcessedArgs, Result),
+cli_main(ProgName, ProgPackage, Args, !IO) :-
+    progroot(ProgName, ProgRootRes, !IO),
     (
-        Result = ok(OptionTable),
+        ProgRootRes = ok(ProgRoot),
+        OptionOps = option_ops_multi(short_option, long_option,
+            option_default),
+        process_options(OptionOps, Args, ProcessedArgs, Result),
+        (
+            Result = ok(OptionTable),
 
-        lookup_bool_option(OptionTable, help, ShowHelp),
-        lookup_bool_option(OptionTable, version, ShowVersion),
-        ( if
-            ShowVersion = no,
-            parse_cmd(Cmd, ProcessedArgs, _CmdArgs)
-        then
-            (
-                ShowHelp = yes,
-                Doc = docs(doc_ref_list_to_docs(ShowHelp, [Cmd]))
-            ;
-                ShowHelp = no,
+            lookup_bool_option(OptionTable, help, ShowHelp),
+            lookup_bool_option(OptionTable, version, ShowVersion),
+            ( if
+                ShowVersion = no,
+                parse_cmd(Cmd, ProcessedArgs, _CmdArgs)
+            then
                 (
-                    Cmd = list,
-                    lookup_bool_option(OptionTable, installed, Installed),
-                    (
-                        Installed = yes,
-                        Doc = str("listing installed packages")
-                    ;
-                        Installed = no,
-                        find_container_up(this_directory, ContainerRes, !IO),
-                        (
-                            ContainerRes = ok(Container),
-                            Doc = container_to_doc(Container)
-                        ;
-                            ContainerRes = io.error(Error),
-                            Doc = error_to_doc(Error)
-                        )
-                    )
+                    ShowHelp = yes,
+                    Doc = make_docs(doc_ref_list_to_docs(ShowHelp, [Cmd]))
                 ;
-                    Cmd = build,
-                    Doc = str("building local packages")
+                    ShowHelp = no,
+                    (
+                        Cmd = list,
+                        lookup_bool_option(OptionTable, installed, Installed),
+                        (
+                            Installed = yes,
+                            Doc = make_doc(str("listing installed packages"))
+                        ;
+                            Installed = no,
+                            find_container_up(this_directory, ContainerRes,
+                                !IO),
+                            (
+                                ContainerRes = ok(Container),
+                                Doc = make_doc(container_to_doc(Container))
+                            ;
+                                ContainerRes = io.error(Error),
+                                Doc = make_doc(Error)
+                            )
+                        )
+                    ;
+                        Cmd = build,
+                        Doc = make_doc(str("building local packages"))
+                    )
                 )
+            else if ShowVersion = yes then
+                Doc = make_doc(package_tree_to_doc(ProgPackage))
+            else
+                Doc = make_doc(prog_usage_to_doc(ShowHelp, ProgPackage))
             )
-        else if ShowVersion = yes then
-            Doc = package_tree_to_doc(ProgPackage)
-        else
-            Doc = prog_usage_to_doc(ShowHelp, ProgPackage)
+        ;
+            Result = error(ErrorMessage),
+            Doc = make_doc(make_io_error(ErrorMessage))
         )
     ;
-        Result = error(ErrorMessage),
-        Doc = error_message_to_doc(ErrorMessage)
+        ProgRootRes = error(Error),
+        Doc = make_doc(Error)
     ),
-    write_doc(docs([Doc, nl]), !IO).
+    write_doc(Doc, !IO),
+    ( if is_stderr(Doc) then
+        io.set_exit_status(1, !IO)
+    else
+        true
+    ).
 
 %----------------------------------------------------------------------------%
 

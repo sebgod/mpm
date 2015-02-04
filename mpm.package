@@ -1,3 +1,3 @@
-version("0.2.0").
+version("0.2.1").
 
-dep("libmercury_mpm","0.3.0").
+dep("libmercury_mpm","0.4.0").

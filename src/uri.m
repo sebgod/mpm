@@ -26,6 +26,7 @@
     (func to_uri(T) = uri)
 ].
 
+:- instance docable(uri).
 :- instance doc_ref(uri).
 
 :- instance uri(string).
@@ -96,8 +97,11 @@
     --->    local_path(string)  % an unencoded, OS-specific path
     ;       file(string).       % a valid file URI
 
+:- instance docable(uri) where [
+    (func(to_doc/1) is uri_to_doc)
+].
+
 :- instance doc_ref(uri) where [
-    (func(to_doc/1) is uri_to_doc),
     (func(to_string/1) is uri_to_string)
 ].
 

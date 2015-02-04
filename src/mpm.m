@@ -35,8 +35,9 @@
 %----------------------------------------------------------------------------%
 
 main(!IO) :-
+    io.progname($module, ProgName, !IO),
     command_line_arguments(Args, !IO),
-    cli_main(package, Args, !IO).
+    cli_main(ProgName, package, Args, !IO).
 
 %----------------------------------------------------------------------------%
 :- end_module mpm.
