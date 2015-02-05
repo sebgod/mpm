@@ -55,15 +55,14 @@ endif
 SELF_TEST := self-test
 # use CONTINUE_FAILED_TESTS=true to continue after a failed test
 CONTINUE_FAILED_TESTS := false
-YES_OR_NO := echo ok || (echo  no && $(CONTINUE_FAILED_TESTS))
 SELF_TEST_CMD = echo -n "TEST if $(1)=$($(1)) is $(2)	" && \
-				$($1) --version 2>/dev/null | $(FINDSTR) $(2) >/dev/null && \
-				$(YES_OR_NO)
+    $($1) --version 2>/dev/null | $(FINDSTR) $(2) >/dev/null && \
+    echo ok || (echo  no && $(CONTINUE_FAILED_TESTS))
 
 .PHONY: self-test
 self-test:
 	@$(call SELF_TEST_CMD,MMC,Mercury)
-	@$(foreach VAR,CAT CP DATE DIFF GREP INSTALL RM SED SORT SLEEP,\
+	@$(foreach VAR,CAT CP DATE DIFF GREP INSTALL MAKE RM SED SORT SLEEP,\
 		$(call SELF_TEST_CMD,$(VAR),GNU);)
 	@$(call SELF_TEST_CMD,CURL,libcurl)
 	@$(call SELF_TEST_CMD,GIT,"git version")
