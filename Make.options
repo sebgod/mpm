@@ -8,6 +8,7 @@ CURL_FLAGS := -s -L
 DATE := date
 DIFF := diff
 DIFF_FLAGS := -u
+ECHO := /bin/echo
 GIT := git
 GREP := grep
 # TODO: we should ask MMC what it is using for install
@@ -59,6 +60,9 @@ ifdef WINDIR
     INSTALL_FILES_COMPARE := $(CP) -u
     KILLALL := taskkill -t -im
     KILLALL_FORCE := taskkill -F  -im
+    ifeq (ConEmuANSI,ON)
+        COLORTERM := win32-conemu
+    endif
 endif
 
 # end of public variable block
@@ -69,28 +73,38 @@ SELF_TEST := self-test
 # use CONTINUE_FAILED_TESTS=true to continue after a failed test
 CONTINUE_FAILED_TESTS := false
 
-SELF_TEST_ECHO = echo -n "TEST if $(1)=$($(1)) is $(2)	"
-SELF_TEST_RES  = echo ok || (echo  no && $(CONTINUE_FAILED_TESTS))
+ANSI_COLOUR = \\033[$(1)\;$(2)m$(3)\\033[39\;22m
+TEST_OK := ok
+TEST_NO := no
+ifneq (COLORTERM,)
+    TEST_OK := -e $(call ANSI_COLOUR,32,1,$(TEST_OK))
+    TEST_NO := -e $(call ANSI_COLOUR,31,1,$(TEST_NO))
+endif
 
-SELF_TEST_VER = $(SELF_TEST_ECHO) && \
+TEST_PREFIX = echo -n "TEST if $(1)=$($(1)) is $(2)	"
+TEST_RES  = echo $(TEST_OK) || (echo $(TEST_NO) && \
+    $(CONTINUE_FAILED_TESTS))
+
+TEST_VER = $(TEST_PREFIX) && \
     $($1) --version 2>/dev/null | $(FINDSTR) $(2) >/dev/null && \
-	$(SELF_TEST_RES)
+	$(TEST_RES)
 
-SELF_TEST_CC = $(SELF_TEST_ECHO) && \
+TEST_CC = $(TEST_PREFIX) && \
     F=`$(MKTEMP) $(CC)_obj_ext_XXXXXXXXX`; \
         ($(MV) "$$F" "$$F.c" && $(CC) -c "$$F.c" >/dev/null 2>&1) ;\
         $(RM) "$$F.c" && $(RM) "$$F$($(1))"  && \
-        $(SELF_TEST_RES)
+        $(TEST_RES)
+
+TEST_GNU := CAT CP DATE DIFF ECHO GREP INSTALL MAKE MV RM SED SORT SLEEP
 
 .PHONY: self-test
 self-test:
-	@$(call SELF_TEST_VER,MMC,Mercury)
-	@$(foreach VAR,CAT CP DATE DIFF GREP INSTALL MAKE MV RM SED SORT SLEEP,\
-		$(call SELF_TEST_VER,$(VAR),GNU);)
-	@$(call SELF_TEST_VER,MKTEMP,"mktemp")
-	@$(call SELF_TEST_VER,CURL,"libcurl")
-	@$(call SELF_TEST_VER,GIT,"git version")
-	@$(call SELF_TEST_CC,OBJ_EXT,"$(CC)\'s object extension")
+	@$(call TEST_VER,MMC,Mercury)
+	@$(foreach VAR,$(TEST_GNU),( $(call TEST_VER,$(VAR),GNU) ) && ) true
+	@$(call TEST_VER,MKTEMP,"mktemp")
+	@$(call TEST_VER,CURL,"libcurl")
+	@$(call TEST_VER,GIT,"git version")
+	@$(call TEST_CC,OBJ_EXT,"$(CC)\'s object extension")
 
 .PHONY: skip
 skip:
