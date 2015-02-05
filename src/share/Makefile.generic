@@ -1,11 +1,11 @@
-# vim: ft=make ts=4 sw=4 ff=unix noet
+# vim: ft=make ts=4 sw=4 ff=unix noet tw=78
 
 # do not use CC for executables (see rule %: %.meta_info.m)
 .SUFFIXES:
 
 VER_RE := ([0-9]+)[.]([0-9]+)[.]([0-9]+)([-][0-9a-zA-Z_]+)?([+][0-9a-zA-Z_]+)?
 PKG_TUPLE_VER_RE := "s/^version[(]\"$(VER_RE)\"[)].+/ \
--e s\/<version>\/{\1,\2,\3,\"\4\",\"\5\"}\/i/p"
+-e s\/<version>\/{{\1,\2,\3,\"\4\"},\"\5\"}\/i/p"
 PKG_DIST_VER_RE  := "s/^version[(]\"$(VER_RE)\"[)].+/\1.\2.\3\4/p"
 PKG_LIBNAME_DEPS_RE := "s/^dep[(]\"lib([^\"]+)[\"].+/\1/p"
 PKG_NAME_VER_RE := dep[(]\"lib([^\"]+)[\"]\s*,\s*\"([^\"]+)\"

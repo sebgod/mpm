@@ -18,7 +18,8 @@
 
 %----------------------------------------------------------------------------%
 
-:- type version == {int, int, int, string, string}.
+:- type dist_version == {int, int, int, string}.
+:- type version == {dist_version, string}.
 
 :- func version_to_string(version) = string.
 
@@ -58,7 +59,7 @@
 
 %----------------------------------------------------------------------------%
 
-version_to_string({Major, Minor, Patch, Pre, Build}) =
+version_to_string({{Major, Minor, Patch, Pre}, Build}) =
     ( if Major = -1 then
         Build
     else
@@ -93,7 +94,7 @@ string_to_version(VersionString, Version) :-
 :- mode parse_version(uo, mdi, muo) is semidet.
 :- mode parse_version(uo, in, out) is semidet.
 
-parse_version({Major, Minor, Patch, Pre, Build}) -->
+parse_version({{Major, Minor, Patch, Pre}, Build}) -->
     dec_unsigned_int(Major), ['.'],
     dec_unsigned_int(Minor), ['.'],
     dec_unsigned_int(Patch),
@@ -101,7 +102,7 @@ parse_version({Major, Minor, Patch, Pre, Build}) -->
     { Pre = "",
       Build = ""  }.
 
-version_to_doc(Version @ {Major, _Minor, _Patch, _Pre, Build}) =
+version_to_doc(Version @ {{Major, _Minor, _Patch, _Pre}, Build}) =
     ( if Major = -1 then
         problem(Build)
     else
@@ -110,7 +111,7 @@ version_to_doc(Version @ {Major, _Minor, _Patch, _Pre, Build}) =
 
 %----------------------------------------------------------------------------%
 
-invalid_package_version = {-1,0,0,"","<invalid package>"}.
+invalid_package_version = {{-1,0,0,""},"<invalid package>"}.
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.semver.
