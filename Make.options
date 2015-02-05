@@ -7,16 +7,18 @@ DATE := date
 DIFF := diff
 DIFF_FLAGS := -u
 GIT := git
+GREP := grep
 # TODO: we should ask MMC what it is using for install
 INSTALL := install
 KILLALL := killall
 KILLALL_FORCE := killall -9
 MKDIR := mkdir
 MMC := mmc
+RM  := /bin/rm
 # TODO: GNU sed is required for now
 SED := sed -r
 SLEEP := sleep
-RM  := /bin/rm
+SORT := /bin/sort
 
 # Extensions
 EXE_EXT :=
@@ -28,6 +30,9 @@ CC       := $(shell $(MMC) --output-cc)
 CC_TYPE  := $(shell $(MMC) --output-cc-type)
 DEL_DIR  := $(RM) -fR
 DEL_FILE := $(RM) -f
+# If all you want is to look for a string in a stream,
+# use FINDSTR, since that works on Windows as well
+FINDSTR  := $(GREP)
 INSTALL_FILES := $(INSTALL) -m 644
 INSTALL_FILES_COMPARE := $(INSTALL_FILES) --compare
 HARDLINK := $(CP) -u -f -l
@@ -36,12 +41,33 @@ HARDLINK := $(CP) -u -f -l
 ifdef WINDIR
     # The expected outputs do not use CRLF line endings,
     # so if we are on Windows we need to account for this.
-    # TODO: We assume the use of GNU diff if this is the case.
     DIFF_FLAGS += --strip-trailing-cr
     EXE_EXT := .exe
+    FINDSTR := findstr
     # TODO This is slightly different from install --compare
     # since --compare also copies if the date is older
     INSTALL_FILES_COMPARE := $(CP) -u
     KILLALL := taskkill -t -im
     KILLALL_FORCE := taskkill -F  -im
 endif
+
+# Makefile self-test, use SELF_TEST=skip to skip self-testing
+SELF_TEST := self-test
+# use CONTINUE_FAILED_TESTS=true to continue after a failed test
+CONTINUE_FAILED_TESTS := false
+YES_OR_NO := echo ok || (echo  no && $(CONTINUE_FAILED_TESTS))
+.PHONY: self-test
+self-test:
+	@echo -n "TEST if MMC=$(MMC) is Mercury	"
+	@$(MMC) --version 2>nul | $(FINDSTR) Mercury >nul && $(YES_OR_NO)
+	@$(foreach VAR,CAT CP DATE DIFF GREP INSTALL RM SED SORT SLEEP,\
+		echo -n "TEST if $(VAR)=$($(VAR)) is GNU	"; \
+			$($(VAR)) --version 2>nul | \
+			$(FINDSTR) GNU >nul && $(YES_OR_NO);)
+	@echo -n "TEST if CURL=$(CURL) is valid	"
+	@$(CURL) --version 2>nul | $(FINDSTR) "libcurl" >nul && $(YES_OR_NO)
+	@echo -n "TEST if GIT=$(GIT) is valid	"
+	@$(GIT) --version 2>nul | $(FINDSTR) "git version" >nul && $(YES_OR_NO)
+
+.PHONY: skip
+skip:
