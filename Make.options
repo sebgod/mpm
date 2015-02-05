@@ -56,18 +56,17 @@ SELF_TEST := self-test
 # use CONTINUE_FAILED_TESTS=true to continue after a failed test
 CONTINUE_FAILED_TESTS := false
 YES_OR_NO := echo ok || (echo  no && $(CONTINUE_FAILED_TESTS))
+SELF_TEST_CMD = echo -n "TEST if $(1)=$($(1)) is $(2)	" && \
+				$($1) --version 2>/dev/null | $(FINDSTR) $(2) >/dev/null && \
+				$(YES_OR_NO)
+
 .PHONY: self-test
 self-test:
-	@echo -n "TEST if MMC=$(MMC) is Mercury	"
-	@$(MMC) --version 2>nul | $(FINDSTR) Mercury >nul && $(YES_OR_NO)
+	@$(call SELF_TEST_CMD,MMC,Mercury)
 	@$(foreach VAR,CAT CP DATE DIFF GREP INSTALL RM SED SORT SLEEP,\
-		echo -n "TEST if $(VAR)=$($(VAR)) is GNU	"; \
-			$($(VAR)) --version 2>nul | \
-			$(FINDSTR) GNU >nul && $(YES_OR_NO);)
-	@echo -n "TEST if CURL=$(CURL) is valid	"
-	@$(CURL) --version 2>nul | $(FINDSTR) "libcurl" >nul && $(YES_OR_NO)
-	@echo -n "TEST if GIT=$(GIT) is valid	"
-	@$(GIT) --version 2>nul | $(FINDSTR) "git version" >nul && $(YES_OR_NO)
+		$(call SELF_TEST_CMD,$(VAR),GNU);)
+	@$(call SELF_TEST_CMD,CURL,libcurl)
+	@$(call SELF_TEST_CMD,GIT,"git version")
 
 .PHONY: skip
 skip:
