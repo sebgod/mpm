@@ -15,6 +15,7 @@ INSTALL := install
 KILLALL := killall
 KILLALL_FORCE := killall -9
 MKDIR := mkdir
+MKTEMP := mktemp
 MMC := mmc
 MV := mv
 RM  := /bin/rm
@@ -67,17 +68,29 @@ endif
 SELF_TEST := self-test
 # use CONTINUE_FAILED_TESTS=true to continue after a failed test
 CONTINUE_FAILED_TESTS := false
-SELF_TEST_CMD = echo -n "TEST if $(1)=$($(1)) is $(2)	" && \
+
+SELF_TEST_ECHO = echo -n "TEST if $(1)=$($(1)) is $(2)	"
+SELF_TEST_RES  = echo ok || (echo  no && $(CONTINUE_FAILED_TESTS))
+
+SELF_TEST_VER = $(SELF_TEST_ECHO) && \
     $($1) --version 2>/dev/null | $(FINDSTR) $(2) >/dev/null && \
-    echo ok || (echo  no && $(CONTINUE_FAILED_TESTS))
+	$(SELF_TEST_RES)
+
+SELF_TEST_CC = $(SELF_TEST_ECHO) && \
+    F=`$(MKTEMP) $(CC)_obj_ext_XXXXXXXXX`; \
+        ($(MV) "$$F" "$$F.c" && $(CC) -c "$$F.c" >/dev/null 2>&1) ;\
+        $(RM) "$$F.c" && $(RM) "$$F$($(1))"  && \
+        $(SELF_TEST_RES)
 
 .PHONY: self-test
 self-test:
-	@$(call SELF_TEST_CMD,MMC,Mercury)
+	@$(call SELF_TEST_VER,MMC,Mercury)
 	@$(foreach VAR,CAT CP DATE DIFF GREP INSTALL MAKE MV RM SED SORT SLEEP,\
-		$(call SELF_TEST_CMD,$(VAR),GNU);)
-	@$(call SELF_TEST_CMD,CURL,libcurl)
-	@$(call SELF_TEST_CMD,GIT,"git version")
+		$(call SELF_TEST_VER,$(VAR),GNU);)
+	@$(call SELF_TEST_VER,MKTEMP,"mktemp")
+	@$(call SELF_TEST_VER,CURL,"libcurl")
+	@$(call SELF_TEST_VER,GIT,"git version")
+	@$(call SELF_TEST_CC,OBJ_EXT,"$(CC)\'s object extension")
 
 .PHONY: skip
 skip:
