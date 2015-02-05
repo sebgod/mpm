@@ -1,3 +1,5 @@
+# vim: ft=make tw=78 ts=4 sw=4 noet
+
 # HOME will usually be set by the environment, on Windows try to emulate
 ifeq ($(strip $(HOME)),)
     ifeq ($(strip $(USERPROFILE)),)
