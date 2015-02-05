@@ -60,7 +60,7 @@ ifdef WINDIR
     INSTALL_FILES_COMPARE := $(CP) -u
     KILLALL := taskkill -t -im
     KILLALL_FORCE := taskkill -F  -im
-    ifneq (ANSICON_DEF,)
+    ifdef ANSICON_DEF
         COLORTERM := win32-ansicon
     endif
     ifeq (ConEmuANSI,ON)
@@ -76,15 +76,17 @@ SELF_TEST := self-test
 # use CONTINUE_FAILED_TESTS=true to continue after a failed test
 CONTINUE_FAILED_TESTS := false
 
-ANSI_COLOUR = \\033[$(1)\;$(2)m$(3)\\033[39\;22m
-TEST_OK := ok
-TEST_NO := no
-ifneq (COLORTERM,)
-    TEST_OK := -e $(call ANSI_COLOUR,32,1,$(TEST_OK))
-    TEST_NO := -e $(call ANSI_COLOUR,31,1,$(TEST_NO))
+ANSI_COLOUR   = \\033[$(1)\;$(2)m$(3)\\033[39\;22m
+ANSI_JUMP_COL = \\033[$(1)G
+TEST_OK := "[succeeded]"
+TEST_NO := "[failed]"
+ifdef COLORTERM
+    TEST_JMP := $(call ANSI_JUMP_COL,6)
+    TEST_OK := -e $(TEST_JMP)$(call ANSI_COLOUR,32,1,"success")
+    TEST_NO := -e $(TEST_JMP)$(call ANSI_COLOUR,31,1,"failure")
 endif
 
-TEST_PREFIX = echo -n "TEST if $(1)=$($(1)) is $(2)	"
+TEST_PREFIX = echo -n "TEST whether $(1)=$($(1)) is $(2) "
 TEST_RES  = echo $(TEST_OK) || (echo $(TEST_NO) && \
     $(CONTINUE_FAILED_TESTS))
 
