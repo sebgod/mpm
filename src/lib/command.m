@@ -26,7 +26,7 @@
 :- instance doc_ref(command).
 :- instance doc_ref_values(command).
 
-    % for a documentation of these types,
+    % for a documentation of these commands,
     % please refer to `command_to_docs'/1 in this module.
     %
 :- type command
