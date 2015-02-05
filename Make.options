@@ -60,6 +60,9 @@ ifdef WINDIR
     INSTALL_FILES_COMPARE := $(CP) -u
     KILLALL := taskkill -t -im
     KILLALL_FORCE := taskkill -F  -im
+    ifneq (ANSICON_DEF,)
+        COLORTERM := win32-ansicon
+    endif
     ifeq (ConEmuANSI,ON)
         COLORTERM := win32-conemu
     endif
