@@ -16,19 +16,17 @@ KILLALL := killall
 KILLALL_FORCE := killall -9
 MKDIR := mkdir
 MMC := mmc
+MV := mv
 RM  := /bin/rm
 # TODO: GNU sed is required for now
 SED := sed -r
 SLEEP := sleep
 SORT := /bin/sort
 
-# Extensions
-EXE_EXT :=
-# TODO: This needs to be determined from $(CC_TYPE)
-OBJ_EXT := .o
-
 # composed common variables
 CC       := $(shell $(MMC) --output-cc)
+# if you change CC on the command line you have to change CC_TYPE as well
+OBJ_EXT := $(shell $(MMC) --output-cc-type | sed -r -n -e "s/([^_]+).*/\1/p")
 CC_TYPE  := $(shell $(MMC) --output-cc-type)
 DEL_DIR  := $(RM) -fR
 DEL_FILE := $(RM) -f
@@ -38,6 +36,15 @@ FINDSTR  := $(GREP)
 INSTALL_FILES := $(INSTALL) -m 644
 INSTALL_FILES_COMPARE := $(INSTALL_FILES) --compare
 HARDLINK := $(CP) -u -f -l
+
+# Extensions
+EXE_EXT :=
+ifeq ($(CC_TYPE),msvc)
+    OBJ_EXT := .obj
+else
+    OBJ_EXT := .o
+endif
+# TODO: This needs to be determined from $(CC_TYPE)
 
 # Windows specific overrides
 ifdef WINDIR
@@ -53,6 +60,9 @@ ifdef WINDIR
     KILLALL_FORCE := taskkill -F  -im
 endif
 
+# end of public variable block
+#----------------------------------------------------------------------------#
+
 # Makefile self-test, use SELF_TEST=skip to skip self-testing
 SELF_TEST := self-test
 # use CONTINUE_FAILED_TESTS=true to continue after a failed test
@@ -64,7 +74,7 @@ SELF_TEST_CMD = echo -n "TEST if $(1)=$($(1)) is $(2)	" && \
 .PHONY: self-test
 self-test:
 	@$(call SELF_TEST_CMD,MMC,Mercury)
-	@$(foreach VAR,CAT CP DATE DIFF GREP INSTALL MAKE RM SED SORT SLEEP,\
+	@$(foreach VAR,CAT CP DATE DIFF GREP INSTALL MAKE MV RM SED SORT SLEEP,\
 		$(call SELF_TEST_CMD,$(VAR),GNU);)
 	@$(call SELF_TEST_CMD,CURL,libcurl)
 	@$(call SELF_TEST_CMD,GIT,"git version")
