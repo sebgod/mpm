@@ -41,12 +41,14 @@
 :- import_module mercury_mpm.documentation. % for `error_to_doc'/1
 :- import_module mercury_mpm.package_file.
 :- import_module mercury_mpm.resource.      % e.g. for `format_err_res'/4
+:- import_module mercury_mpm.scm_repository.
 :- import_module mercury_mpm.uri.           % used for package file paths
 
 :- import_module bool.
 :- import_module dir.
 :- import_module list.
 :- import_module maybe.
+:- import_module pair.  % used for repo-dir
 :- import_module string.
 
 %----------------------------------------------------------------------------%
@@ -59,8 +61,8 @@
 
 :- type container
     --->    container(
-                container_scm_root      :: uri,
-                container_package_files :: list(res(package_file))
+                container_scm_repository    :: scm_repository,
+                container_package_files     :: list(res(package_file))
             ).
 
 find_container_up(DirName, ContainerRes, !IO) :-
@@ -71,12 +73,13 @@ find_container_up(DirName, ContainerRes, !IO) :-
         (
             FindContainerDirRes = ok(MaybeContainerDir),
             (
-                MaybeContainerDir = yes(ContainerDir),
+                MaybeContainerDir = yes(RepoKind-ContainerDir),
                 foldl2(list_package_files, ContainerDir, [],
                     PackageFilesRes, !IO),
                 (
                     PackageFilesRes = ok(PackageFiles),
-                    init(ContainerDir, PackageFiles, Container, !IO),
+                    init(RepoKind, ContainerDir, PackageFiles, Container,
+                        !IO),
                     ContainerRes = ok(Container)
                 ;
                     PackageFilesRes = error(_, Error),
@@ -102,12 +105,13 @@ find_container_up(DirName, ContainerRes, !IO) :-
         ContainerRes = error(Error)
     ).
 
-:- pred init(T, list(uri), container, io, io) <= uri(T).
-:- mode init(in, in, out, di, uo) is det.
+:- pred init(kind, T, list(uri), container, io, io) <= uri(T).
+:- mode init(in, in, in, out, di, uo) is det.
 
-init(ContainerDir, PackageFiles, Container, !IO) :-
+init(RepoKind, ContainerDir, PackageFiles, Container, !IO) :-
     map_foldl(from_uri, PackageFiles, PackageFileResList, !IO),
-    Container = container(to_uri(ContainerDir), PackageFileResList).
+    Repository = scm_repository(RepoKind, to_uri(ContainerDir)),
+    Container = container(Repository, PackageFileResList).
 
 :- pred list_package_files : foldl_pred(list(uri)) `with_inst` foldl_pred.
 
@@ -121,11 +125,12 @@ list_package_files(DirName, BaseName, FileType, yes, !PackageFiles, !IO) :-
         true
     ).
 
-:- pred find_container_dir : foldl_pred(maybe(string)) `with_inst` foldl_pred.
+:- pred find_container_dir : foldl_pred(maybe(pair(kind, string)))
+    `with_inst` foldl_pred.
 
 find_container_dir(DirName, BaseName, FileType, Continue, !Container, !IO) :-
     ( if FileType = directory, BaseName = ".git" then
-        !:Container = yes(DirName),
+        !:Container = yes(git-DirName),
         Continue = no
     else
         Continue = yes
@@ -134,8 +139,7 @@ find_container_dir(DirName, BaseName, FileType, Continue, !Container, !IO) :-
 %----------------------------------------------------------------------------%
 
 container_to_doc(Container) = indent(
-    [ str("git repository: ")
-    , to_doc(Container ^ container_scm_root)
+    [ scm_repository_to_doc(Container ^ container_scm_repository)
     , nl
     | map(
         (func(PackageFileRes) = Doc :-

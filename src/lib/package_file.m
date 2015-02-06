@@ -15,9 +15,11 @@
 :- interface.
 
 :- import_module mercury_mpm.package.
+:- import_module mercury_mpm.scm_repository.
 :- import_module mercury_mpm.uri.
 
 :- import_module io.
+:- import_module maybe.     % e.g. for representing optional package data.
 :- import_module pretty_printer.
 
 %----------------------------------------------------------------------------%
@@ -27,8 +29,9 @@
     %
 :- type package_file
     --->    package_file(
-                pkg_file_uri        :: uri,
-                pkg_file_package    :: package
+                pkg_file_uri            :: uri,
+                pkg_file_package        :: package,
+                pkg_file_scm_repository :: maybe(scm_repository)
             ).
 
     % from_uri(Uri, PackageFileRes, !IO):
@@ -53,13 +56,12 @@
 
 :- implementation.
 
-:- use_module mercury_mpm.semver.
 :- import_module mercury_mpm.documentation. % for `doc_ref(T).to_string'/1
 :- import_module mercury_mpm.resource.      % e.g. for `format_err_res'/4
+:- import_module mercury_mpm.semver.
 
 :- import_module dir.       % for `det_basename'/1
 :- import_module list.
-:- import_module maybe.     % e.g. for representing optional package data.
 :- import_module string.    % for `det_remove_suffix'/2
 :- import_module term_conversion. % for `term_to_type'/2
 :- import_module term_io.   % used for parsing package files
@@ -69,20 +71,26 @@
 
 :- inst package_file_res == unique(io.error(ground) ; io.ok(ground)).
 
-:- type version
+:- type version_rep
     ---> version(string).
 
-:- type dep
+:- type dependency_rep
     --->    dep(
                 dep_name    :: string,
                 dep_pattern :: string
+            ).
+
+:- type repository_rep
+    --->    repository(
+                repo_kind       :: scm_repository.kind,
+                repo_uri_rep    :: string
             ).
 
 :- func init(uri::in) = (package_file::out) is det.
 
 init(Uri) =
     package_file(Uri,
-        {PkgName, semver.invalid_package_version, []}) :-
+        {PkgName, invalid_package_version, []}, no) :-
     PkgName = det_remove_suffix(det_basename(Uri), package_file_ext).
 
 %----------------------------------------------------------------------------%
@@ -132,21 +140,28 @@ parse_loop(!PackageFile, MaybeError, !IO) :-
             term_to_type(Term, version(VersionString))
         then
             !:PackageFile = !.PackageFile ^ pkg_file_package ^ pkg_version :=
-                semver.det_string_to_version(VersionString)
+                det_string_to_version(VersionString)
         else if
-            term_to_type(Term, Dep : dep)
+            term_to_type(Term, Dependency : dependency_rep)
         then
             !:PackageFile = !.PackageFile ^ pkg_file_package ^ pkg_deps :=
-                [ { Dep ^ dep_name,
-                    Dep ^ dep_pattern,
+                [ { Dependency ^ dep_name,
+                    Dependency ^ dep_pattern,
                     univ((func(Name, _Pattern : string) =
                             { Name
-                            , semver.invalid_package_version
+                            , invalid_package_version
                             , []
                             } : package))
                   }
                 | !.PackageFile ^ pkg_file_package ^ pkg_deps
                 ]
+        else if
+            term_to_type(Term, Repository : repository_rep)
+        then
+            !:PackageFile = !.PackageFile ^ pkg_file_scm_repository :=
+                yes(scm_repository(
+                    Repository ^ repo_kind,
+                    to_uri(Repository ^ repo_uri_rep)))
         else
             true
         ),

@@ -95,7 +95,8 @@
 
 :- type uri
     --->    local_path(string)  % an unencoded, OS-specific path
-    ;       file(string).       % a valid file URI
+    ;       file(string)        % a valid file URI
+    ;       url(string).        % a valid http(s) URI
 
 :- instance docable(uri) where [
     (func(to_doc/1) is uri_to_doc)
@@ -112,9 +113,10 @@
 uri_to_doc(Uri) = str(uri_to_string(Uri)).
 
 uri_to_string(local_path(LocalPath)) =
-    "file://" ++ percent_encode_path(LocalPath).
+    "file:///" ++ percent_encode_path(LocalPath).
 
-uri_to_string(file(FileUri))   = FileUri.
+uri_to_string(file(FileUri))    = FileUri.
+uri_to_string(url(Url))         = Url.
 
 :- func percent_encode_path(string) = string.
 
@@ -167,7 +169,13 @@ det_basename(Uri) = det_basename(det_uri_to_local_path(Uri)).
 
 :- instance uri(string) where [
     (to_uri(UriOrPath) =
-        ( if prefix(UriOrPath, "file:") then
+        ( if
+            prefix(UriOrPath, "http:") ; prefix(UriOrPath, "https:")
+        then
+            url(UriOrPath)
+        else if
+            prefix(UriOrPath, "file:")
+        then
             file(UriOrPath)  % TODO: Implement URI path decoding
         else
             det_local_path_to_uri(UriOrPath)
