@@ -50,7 +50,7 @@
     %
 :- func contributors = list(pair(string)).
 
-    % dependencies = [{Name, Version, Dependency } | _]:
+    % dependencies = [{Name, Version, Dependency} | _]:
     %
     % Dependencies of this module, where
     %
