@@ -14,7 +14,7 @@
 
 :- interface.
 
-:- import_module mercury_mpm.documentation.
+:- import_module mercury_mpm.formatting.
 
 :- import_module char.
 :- import_module getopt.

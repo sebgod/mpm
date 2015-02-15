@@ -49,8 +49,8 @@
 
 :- implementation.
 
-:- import_module mercury_mpm.documentation.
 :- import_module mercury_mpm.command.
+:- import_module mercury_mpm.formatting.
 :- import_module mercury_mpm.meta_info.
 :- import_module mercury_mpm.option.
 :- import_module mercury_mpm.resource.
@@ -83,7 +83,7 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
             lookup_bool_option(OptionTable, installed, Installed),
             ( if
                 ShowVersion = no,
-                parse_command(Command, ProcessedArgs, _CommandArgs)
+                parse_command(Command, ProcessedArgs, CommandArgs)
             then
                 (
                     ShowHelp = yes,
@@ -101,7 +101,13 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
                         )
                     ;
                         Command = build,
-                        Action = build_current_container_packages
+                        ( if
+                            CommandArgs = []
+                        then
+                            Action = build_current_container_packages
+                        else
+                            sorry($file, $pred, "building of single packages")
+                        )
                     )
                 )
             else if

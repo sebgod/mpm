@@ -14,7 +14,7 @@
 
 :- interface.
 
-:- import_module mercury_mpm.documentation.     % for `doc_ref(T)'
+:- import_module mercury_mpm.formatting.
 
 :- import_module pretty_printer.    % for `doc'
 

@@ -51,8 +51,8 @@
 
 :- implementation.
 
-:- import_module mercury_mpm.documentation.
 :- import_module mercury_mpm.dcg_parsing.
+:- import_module mercury_mpm.formatting.
 
 :- import_module list.
 :- import_module string.

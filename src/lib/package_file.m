@@ -56,8 +56,8 @@
 
 :- implementation.
 
-:- import_module mercury_mpm.documentation. % for `doc_ref(T).to_string'/1
-:- import_module mercury_mpm.resource.      % e.g. for `format_err_res'/4
+:- import_module mercury_mpm.formatting. % for `doc_ref(T).to_string'/1
+:- import_module mercury_mpm.resource.   % e.g. for `format_err_res'/4
 :- import_module mercury_mpm.semver.
 
 :- import_module dir.       % for `det_basename'/1

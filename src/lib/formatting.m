@@ -1,17 +1,17 @@
 %----------------------------------------------------------------------------%
 % vim: ft=mercury ff=unix ts=4 sw=4 et
 %----------------------------------------------------------------------------%
-% File: documentation.m
+% File: formatting.m
 % Copyright © 2015 Sebastian Godelet
 % Main author: Sebastian Godelet <sebastian.godelet@outlook.com>
 % Created on: Thu 29 Jan 14:44:49 CST 2015
 % Stability: low
 %----------------------------------------------------------------------------%
-% Adds support for documentation functions to `libmercury_mpm',
+% Adds support for output formatting to `libmercury_mpm',
 % especially for the command line interface.
 %----------------------------------------------------------------------------%
 
-:- module mercury_mpm.documentation.
+:- module mercury_mpm.formatting.
 
 :- interface.
 
@@ -81,6 +81,9 @@
 %----------------------------------------------------------------------------%
 
 :- implementation.
+
+:- include_module mercury_mpm.formatting.ansi_escape_code.
+:- import_module mercury_mpm.formatting.ansi_escape_code.
 
 :- import_module solutions.
 :- import_module string.        % for `++'/2
@@ -156,22 +159,17 @@ problem(String) = str(format_em(format_red(String))).
 
 %----------------------------------------------------------------------------%
 %
-% Text property functions, currently implemented using ANSI escape codes:
-% https://en.wikipedia.org/wiki/ANSI_escape_code
-% TODO: Check if we are actually on an ANSI escape code compatible console,
-% under Linux this should be almost a given, under Windows check if the
-% CON_EMU variable is set.
-% TODO: Maybe merge coloured_pretty_printer.m functionality here.
-%
+% Text property functions, currently implemented using ANSI escape codes,
+% which are implemented in ansi.m
 
 :- func format_em(string) = string.
 
-format_em(String) = "\x1b\[1m" ++ String ++ "\x1b\[22m".
+format_em(String) = enclose_with_ansi_sgr_pair(String, bold).
 
 :- func format_red(string) = string.
 
-format_red(String) = "\x1b\[31m" ++ String ++ "\x1b\[39m".
+format_red(String) = enclose_with_ansi_sgr_pair(String, red).
 
 %----------------------------------------------------------------------------%
-:- end_module mercury_mpm.documentation.
+:- end_module mercury_mpm.formatting.
 %----------------------------------------------------------------------------%
