@@ -1,13 +1,14 @@
 # vim: ft=make tw=78 ts=4 sw=4 noet
 
 PKG_ROOT :=..
-include $(PKG_ROOT)/Make.options
-include $(PKG_ROOT)/mpm.options
 
 .PHONY: default
 default:
 	cd lib && $(MAKE) default
 	cd bin && $(MAKE) default
+
+include $(PKG_ROOT)/Make.options
+include $(PKG_ROOT)/mpm.options
 
 .PHONY: install
 install: default install_share install_etc install_bin
