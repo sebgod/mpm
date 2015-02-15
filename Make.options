@@ -11,8 +11,6 @@ DIFF_FLAGS := -u
 ECHO := /bin/echo
 GIT := git
 GREP := grep
-# TODO: we should ask MMC what it is using for install
-INSTALL := install
 KILLALL := killall
 KILLALL_FORCE := killall -9
 MKDIR := mkdir
@@ -20,7 +18,7 @@ MKTEMP := mktemp
 MMC := mmc
 MV := mv
 RM  := /bin/rm
-# TODO: GNU sed is required for now
+# GNU sed is required
 SED := sed -r
 SLEEP := sleep
 SORT := /bin/sort
@@ -28,15 +26,15 @@ SORT := /bin/sort
 # composed common variables
 CC       := $(shell $(MMC) --output-cc)
 # if you change CC on the command line you have to change CC_TYPE as well
-OBJ_EXT := $(shell $(MMC) --output-cc-type | sed -r -n -e "s/([^_]+).*/\1/p")
+OBJ_EXT  := $(shell $(MMC) --output-cc-type | sed -r -n -e "s/([^_]+).*/\1/p")
 CC_TYPE  := $(shell $(MMC) --output-cc-type)
 DEL_DIR  := $(RM) -fR
 DEL_FILE := $(RM) -f
 # If all you want is to look for a string in a stream,
 # use FINDSTR, since that works on Windows as well
 FINDSTR  := $(GREP)
-INSTALL_FILES := $(INSTALL) -m 644
-INSTALL_FILES_COMPARE := $(INSTALL_FILES) --compare
+INSTALL  := $(CP)
+INSTALL_COMPARE := $(INSTALL) -u
 HARDLINK := $(CP) -u -f -l
 
 # Extensions
@@ -46,7 +44,6 @@ ifeq ($(CC_TYPE),msvc)
 else
     OBJ_EXT := .o
 endif
-# TODO: This needs to be determined from $(CC_TYPE)
 
 # Windows specific overrides
 ifdef WINDIR
@@ -55,9 +52,6 @@ ifdef WINDIR
     DIFF_FLAGS += --strip-trailing-cr
     EXE_EXT := .exe
     FINDSTR := findstr
-    # TODO This is slightly different from install --compare
-    # since --compare also copies if the date is older
-    INSTALL_FILES_COMPARE := $(CP) -u
     KILLALL := taskkill -t -im
     KILLALL_FORCE := taskkill -F  -im
     ifdef ANSICON_DEF
