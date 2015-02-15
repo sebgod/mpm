@@ -15,6 +15,7 @@
 
 :- interface.
 
+:- import_module mercury_mpm.formatting.
 :- import_module mercury_mpm.uri.
 
 :- import_module pretty_printer.
@@ -26,6 +27,8 @@
                 scm_repo_kind   :: kind,
                 scm_repo_uri    :: uri
             ).
+
+:- instance docable(scm_repository).
 
 :- type kind
     ---> git.
@@ -42,6 +45,10 @@
 :- import_module list.  % for `[|]'/2
 
 %----------------------------------------------------------------------------%
+
+:- instance docable(scm_repository) where [
+    func(to_doc/1) is scm_repository_to_doc
+].
 
 scm_repository_to_doc(Repository) =
     group([ format(Repository ^ scm_repo_kind)

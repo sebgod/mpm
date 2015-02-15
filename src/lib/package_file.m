@@ -14,6 +14,7 @@
 
 :- interface.
 
+:- import_module mercury_mpm.formatting.
 :- import_module mercury_mpm.package.
 :- import_module mercury_mpm.scm_repository.
 :- import_module mercury_mpm.uri.
@@ -33,6 +34,8 @@
                 pkg_file_package        :: package,
                 pkg_file_scm_repository :: maybe(scm_repository)
             ).
+
+:- instance docable(package_file).
 
     % from_uri(Uri, PackageFileRes, !IO):
     %
@@ -56,7 +59,6 @@
 
 :- implementation.
 
-:- import_module mercury_mpm.formatting. % for `doc_ref(T).to_string'/1
 :- import_module mercury_mpm.resource.   % e.g. for `format_err_res'/4
 :- import_module mercury_mpm.semver.
 
@@ -180,8 +182,15 @@ parse_loop(!PackageFile, MaybeError, !IO) :-
 
 package_file_ext = ".package".
 
+:- instance docable(package_file) where [
+    func(to_doc/1) is package_file_to_doc
+].
+
 package_file_to_doc(PackageFile) = docs(
-    [indent([ to_doc(PackageFile ^ pkg_file_uri)
+    [indent([ group([ str(det_basename(PackageFile ^ pkg_file_uri))
+                    , str(" from ")
+                    , to_doc(PackageFile ^ pkg_file_scm_repository)
+                    ])
             , nl
             , package_tree_to_doc(PackageFile ^ pkg_file_package)
             ])

@@ -18,6 +18,7 @@
 :- import_module bool.
 :- import_module io.
 :- import_module list.
+:- import_module maybe.
 :- import_module pretty_printer.
 
 %----------------------------------------------------------------------------%
@@ -45,6 +46,10 @@
 
 :- instance docable(io.error).
 :- instance doc_or_error(io.error).
+
+:- instance docable(maybe(T)) <= docable(T).
+
+:- func maybe_to_doc(maybe(T)) = doc <= docable(T).
 
 :- pred is_stderr(doc_stream_nl_tuple::in) is semidet.
 
@@ -92,7 +97,7 @@
 %----------------------------------------------------------------------------%
 
 :- instance docable(doc) where [
-    (func(to_doc/1) is std_util.id)
+    func(to_doc/1) is std_util.id
 ].
 
 :- instance doc_or_error(doc) where [
@@ -100,12 +105,19 @@
 ].
 
 :- instance docable(io.error) where [
-    (func(to_doc/1) is error_to_doc)
+    func(to_doc/1) is error_to_doc
 ].
 
 :- instance doc_or_error(io.error) where [
     (is_error(_) :- true)
 ].
+
+:- instance docable(maybe(T)) <= docable(T) where [
+    func(to_doc/1) is maybe_to_doc
+].
+
+maybe_to_doc(yes(Docable)) = to_doc(Docable).
+maybe_to_doc(no) = problem("<unspecified>").
 
 is_stderr({_, stderr_stream, _}).
 
