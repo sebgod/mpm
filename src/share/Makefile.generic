@@ -14,9 +14,7 @@ PKG_LIBVER_DEPS_RE  := "s/^$(PKG_NAME_VER_RE).+/lib\1\/\2/p"
 PKG_MULTI    := contrib
 PKG_MULTI_RE := "s/^($(PKG_MULTI))[(]([^)]+)[)].+/-e s\/<\1s>\/\2\|[<\1s>]\/i/p"
 
-PKG_DEPS_RE := "s/^$(PKG_NAME_VER_RE).+/-e s\/<DEPS>\/"
-PKG_DEPS_RE +="{\"lib\1\",\"\2\",<NL>univ(\1.meta_info.package)}"
-PKG_DEPS_RE +="|<NL>[<DEPS>]\/i/p"
+PKG_DEPS_RE := "s/^$(PKG_NAME_VER_RE).+/-e s\/<DEPS>\/{\"lib\1\",\"\2\",<NL>univ(\1.meta_info.package)}|<NL>[<DEPS>]\/i/p"
 
 PKG_VARS    := src_dir
 PKG_VARS_RE := "s/($(PKG_VARS))[(]\"([^\"]+)[\"][)].+/-e s\/<\1>\/\2\/i/p"
