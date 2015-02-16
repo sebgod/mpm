@@ -167,20 +167,8 @@ doc_ref_list_to_docs(Detailed, DocRefs) = Docs :-
     ),
     Docs = map(FmtFunc, DocRefs) ++ OptNl.
 
-problem(String) = str(format_em(format_red(String))).
-
-%----------------------------------------------------------------------------%
-%
-% Text property functions, currently implemented using ANSI escape codes,
-% which are implemented in ansi.m
-
-:- func format_em(string) = string.
-
-format_em(String) = enclose_with_ansi_sgr_pair(String, bold).
-
-:- func format_red(string) = string.
-
-format_red(String) = enclose_with_ansi_sgr_pair(String, red).
+problem(String) =
+    str(foldl(apply_attribute, [bold, red], String)).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.formatting.

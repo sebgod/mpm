@@ -34,7 +34,7 @@
 
 :- instance enum(ansi_sgr).
 
-:- func enclose_with_ansi_sgr_pair(string, ansi_sgr) = string.
+:- func apply_attribute(ansi_sgr, string) = string.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -45,7 +45,7 @@
 
 %----------------------------------------------------------------------------%
 
-enclose_with_ansi_sgr_pair(String, SGR) = format("\x1b\[%dm%s\x1b\[%dm",
+apply_attribute(SGR, String) = format("\x1b\[%dm%s\x1b\[%dm",
     [i(to_int(SGR)), s(String), i(to_int(ansi_sgr_pair(SGR)))]).
 
 :- instance enum(ansi_sgr) where [
