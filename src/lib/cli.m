@@ -78,6 +78,7 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
         (
             Result = ok(OptionTable),
 
+            lookup_bool_option(OptionTable, available, Available),
             lookup_bool_option(OptionTable, help, ShowHelp),
             lookup_bool_option(OptionTable, version, ShowVersion),
             lookup_bool_option(OptionTable, installed, Installed),
@@ -94,9 +95,21 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
                         Command = list,
                         (
                             Installed = yes,
+                            Available = yes,
+                            Action = show_error_message("cannot display " ++
+                                "installed and available packages at the " ++
+                                "same time")
+                        ;
+                            Installed = yes,
+                            Available = no,
                             Action = list_installed_packages
                         ;
                             Installed = no,
+                            Available = yes,
+                            Action = list_current_container_packages
+                        ;
+                            Installed = no,
+                            Available = no,
                             Action = list_current_container_packages
                         )
                     ;
@@ -153,13 +166,17 @@ list_current_container_packages(Doc, !IO) :-
 list_installed_packages(Doc, !IO) :-
     Doc = make_doc(str("listing installed packages")).
 
+:- pred list_available_packages : cli_pred `with_inst` cli_pred.
+
+list_available_packages(Doc, !IO) :-
+    Doc = make_doc(str("listing installed packages")).
+
 :- pred build_current_container_packages : cli_pred `with_inst` cli_pred.
 
 build_current_container_packages(Doc, !IO) :-
     Doc = make_doc(str("building local packages")).
 
-:- pred show_package_tree(package) : cli_pred.
-:- mode show_package_tree(in) `with_inst` cli_pred.
+:- pred show_package_tree(package::in) : cli_pred `with_inst` cli_pred.
 
 show_package_tree(Package, Doc, !IO) :-
     Doc = make_doc(package_tree_to_doc(Package)).
@@ -169,8 +186,7 @@ show_package_tree(Package, Doc, !IO) :-
     % Documents the command line interface of the `ProgPackage' executable,
     % with detailed help for each command and option if `Detailed' is 'yes'.
     %
-:- pred show_proc_usage(bool, string) : cli_pred.
-:- mode show_proc_usage(in, in) `with_inst` cli_pred.
+:- pred show_proc_usage(bool::in, string::in) : cli_pred `with_inst` cli_pred.
 
 show_proc_usage(Detailed, ProgExe, Doc, !IO) :-
     CommandDocs =
@@ -188,20 +204,18 @@ show_proc_usage(Detailed, ProgExe, Doc, !IO) :-
         indent([nl | OptionDocs])
     ]).
 
-:- pred show_command_usage(bool, command) : cli_pred.
-:- mode show_command_usage(in, in) `with_inst` cli_pred.
+:- pred show_command_usage(bool::in, command::in) : cli_pred
+    `with_inst` cli_pred.
 
 show_command_usage(Detailed, Command, Doc, !IO) :-
     Doc = make_docs(doc_ref_list_to_docs(Detailed, [Command])).
 
-:- pred show_error_message(string) : cli_pred.
-:- mode show_error_message(in) `with_inst` cli_pred.
+:- pred show_error_message(string::in) : cli_pred `with_inst` cli_pred.
 
 show_error_message(ErrorMessage, Doc, !IO) :-
     show_io_error(make_io_error(ErrorMessage), Doc, !IO).
 
-:- pred show_io_error(io.error) : cli_pred.
-:- mode show_io_error(in) `with_inst` cli_pred.
+:- pred show_io_error(io.error::in) : cli_pred `with_inst` cli_pred.
 
 show_io_error(IOError, Doc, !IO) :-
     Doc = make_doc(IOError).

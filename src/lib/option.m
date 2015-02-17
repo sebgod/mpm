@@ -22,7 +22,8 @@
 %----------------------------------------------------------------------------%
 
 :- type option
-    --->    help
+    --->    available
+    ;       help
     ;       debug
     ;       install_prefix
     ;       installed
@@ -71,6 +72,7 @@ short_option(v, version).
 
 long_option(Name, Option) :- long_option_table(Name, Option).
 
+option_default(_Root, available, bool(no)).
 option_default(_Root, help, bool(no)).
 option_default(_Root, debug, bool(no)).
 option_default(Root, install_prefix, string(Root)).
@@ -85,6 +87,7 @@ option_to_doc(Option) = str(Help) :-
 :- pred option_help(option, string).
 :- mode option_help(in, out) is det.
 
+option_help(available, "list will operate on all available packages").
 option_help(help, "displays help about program usage").
 option_help(debug, "enables debugging of package commands").
 option_help(install_prefix, "specify where to install packages").
@@ -96,6 +99,7 @@ option_help(version, "displays the versions of the library and executable").
 :- mode long_option_table(in, out) is semidet.
 :- mode long_option_table(out, out) is multi.
 
+long_option_table("available", available).
 long_option_table("help", help).
 long_option_table("debug", debug).
 long_option_table("install-prefix", install_prefix).
