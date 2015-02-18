@@ -5,30 +5,7 @@ include $(PKG_ROOT)/mpm.options
 
 MI_TMPL := $(PKG_ROOT)/src/share/meta_info.template
 
-.PHONY: clean
-clean:
-	@echo MMC mercury_mpm.clean
-	@$(MMC) --make mercury_mpm.clean
-	@echo MMC mpm.clean
-	@$(MMC) --make mpm.clean
-
 .PHONY: distclean
 distclean: realclean
-
-.PHONY: realclean
-realclean:
-	@echo MMC mercury_mpm.realclean
-	@$(MMC) --make mercury_mpm.realclean
-	@echo MMC mpm.realclean
-	@$(MMC) --make mpm.realclean
-	@echo RM Mercury code directory
-	@$(DEL_DIR) Mercury
-	@echo RM *.err
-	@$(DEL_FILE) $(wildcard *.err)
-	@echo RM *.mh
-	@$(DEL_FILE) $(wildcard *.mh)
-	@echo RM *.meta_info.m
-	@$(DEL_FILE) $(wildcard *.meta_info.m)
-	@$(DEL_DIR) *.beams
 
 include $(PKG_ROOT)/src/share/Makefile.generic

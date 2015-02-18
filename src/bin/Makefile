@@ -8,8 +8,15 @@ default: bin
 
 include ../Makefile.src_shared
 
+# EXE_EXT is defined only after Make.options is included
 .PHONY: bin
 bin: mpm$(EXE_EXT)
 
 .PHONY: install
 install: mpm.install
+
+.PHONY: clean
+clean: mpm.clean
+
+.PHONY: realclean
+realclean: mpm.realclean

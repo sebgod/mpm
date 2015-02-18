@@ -42,6 +42,31 @@ LIBNAME_DEPS_SH = $(SED) -n -e $(PKG_LIBNAME_DEPS_RE) $<
 LIBVER_DEPS_SH  = $(SED) -n -e $(PKG_LIBVER_DEPS_RE)  $<
 PKG_DIST_VER_SH = $(SED) -n -e $(PKG_DIST_VER_RE)     $<
 
+CLEAN = echo MMC $1.clean && $(MMC) --make $1.clean
+
+REALCLEAN = \
+	echo MMC $1.realclean              && \
+	$(MMC) --make $1.realclean         && \
+	echo RM Mercury code directory     && \
+	$(DEL_DIR) Mercury                 && \
+	echo RM *.err                      && \
+	$(DEL_FILE) $(wildcard *.err)      && \
+	echo RM *.mh                       && \
+	$(DEL_FILE) $(wildcard *.mh)       && \
+	echo RM Compiled package meta-info && \
+	$(DEL_FILE) $1.meta_info.m         && \
+	$(DEL_DIR) *$1.beams
+
+Mercury.modules: $(wildcard *.m)
+	@echo "MMC -f $^"
+	@$(MMC) -f $^
+
+lib%.clean:
+	@$(call CLEAN,$*)
+
+lib%.realclean:
+	@$(call REALCLEAN,$*)
+
 lib%.dep_vars: $(PKG_ROOT)/lib%.package
 	@echo VARS lib$* from $<
 	@$(eval lib$*_LIBNAME_DEPS := $(shell $(LIBNAME_DEPS_SH)))
@@ -60,10 +85,6 @@ lib%.dep_vars: $(PKG_ROOT)/lib%.package
 lib%: lib%.dep_vars %.meta_info.m Mercury.modules
 	@echo MMC --install-prefix="$(lib$*_INSTALL_DIR)" --make lib$*.install
 	@$(MMC) --install-prefix="$(lib$*_INSTALL_DIR)" --make lib$*.install
-
-Mercury.modules: $(wildcard *.m)
-	@echo "MMC -f $^"
-	@$(MMC) -f $^
 
 # generating meta_info.m for package information available at compile time
 .PRECIOUS: %.meta_info.m
@@ -101,15 +122,21 @@ MI_TMPL_IMP = :- use_module $(DEP).meta_info.\n
 # XXX: The dependency analysis used in this rule is temporary, and
 # SHOULD be done by mpm, e.g. %$(EXE_EXT): $(%_DEPS) ...
 
+%.install: %$(EXE_EXT) %.dep_vars
+	@echo INSTALL $*
+	@$(MKDIR) -p "$(MPM_BIN_DIR)"
+	@$(INSTALL) -t "$(MPM_BIN_DIR)" $<
+	@$(INSTALL) $< "$(MPM_BIN_DIR)/$*-$($*_DIST_VER)$(EXE_EXT)"
+
+%.clean:
+	@$(call CLEAN,$*)
+
+%.realclean:
+	@$(call REALCLEAN,$*)
+
 %$(EXE_EXT): %.dep_vars %.meta_info.m Mercury.modules
 	@echo MMC --make $* deps: $($*_LIBVER_DEPS)
 	@$(MMC) --make $* \
 		$(foreach DEP,$($*_LIBVER_DEPS),\
 			--mld "$(MPM_PKG_DIR)/$(DEP)/lib/mercury") \
 		$(foreach LIB,$($*_LIBNAME_DEPS),--ml $(LIB))
-
-%.install: %$(EXE_EXT) %.dep_vars
-	@echo INSTALL $*
-	@$(MKDIR) -p "$(MPM_BIN_DIR)"
-	@$(INSTALL) -t "$(MPM_BIN_DIR)" $<
-	@$(INSTALL) $< "$(MPM_BIN_DIR)/$*-$($*_DIST_VER)$(EXE_EXT)"
