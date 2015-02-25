@@ -38,9 +38,9 @@
 :- mode dec_unsigned_int(uo, in, out) is semidet.
 
 :- pred percent_encode_path_chars : parser_pred.
-:- mode percent_encode_path_chars(di, uo) is semidet.
-:- mode percent_encode_path_chars(mdi, muo) is semidet.
-:- mode percent_encode_path_chars(in, out) is semidet.
+:- mode percent_encode_path_chars(di, uo) is det.
+:- mode percent_encode_path_chars(mdi, muo) is det.
+:- mode percent_encode_path_chars(in, out) is det.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -48,6 +48,7 @@
 :- implementation.
 
 :- import_module int.
+:- import_module require.
 
 %----------------------------------------------------------------------------%
 
@@ -85,15 +86,11 @@ dec_unsigned_int_loop(I0, I) -->
 percent_encode_path_chars([], []).
 
 percent_encode_path_chars([Char | CharRest], EncodedChars) :-
-    (
-        Char = '%',
-        EncodedChars = ['%', '2', '5' | EncodedRest]
-    ;
-        Char = ' ',
-        EncodedChars = ['%', '2', '0' | EncodedRest]
-    ;   ( Char = ('/') ; Char = ('\\') ),
+    ( if
+        ( Char = ('/') ; Char = ('\\') )
+    then
         EncodedChars = ['/' | EncodedRest]
-    ;
+    else if
         ( Char = '0'; Char = '1'; Char = '2'; Char = '3'; Char = '4'
         ; Char = '5'; Char = '6'; Char = '7'; Char = '8'; Char = '9'
         ; Char = 'a'; Char = 'b'; Char = 'c'; Char = 'd'; Char = 'e'
@@ -109,11 +106,51 @@ percent_encode_path_chars([Char | CharRest], EncodedChars) :-
         ; Char = 'U'; Char = 'V'; Char = 'W'; Char = 'X'; Char = 'Y'
         ; Char = 'Z'
         ; Char = '_'; Char = (':') ; Char = ('-') ; Char = ('.')
-        ),
+        )
+    then
         char_copy(Char, Unique),
         EncodedChars = [Unique | EncodedRest]
+    else
+        ( if
+            to_utf8(Char, Codes),
+            (
+                Codes = [C1],
+                utf8_code_unit_to_hex(C1, C1H, C1L),
+                EncodedChars0 = ['%', C1H, C1L | EncodedRest]
+            ;
+                Codes = [C1, C2],
+                utf8_code_unit_to_hex(C1, C1H, C1L),
+                utf8_code_unit_to_hex(C2, C2H, C2L),
+                EncodedChars0 = ['%', C1H, C1L, '%', C2H, C2L | EncodedRest]
+            ;
+                Codes = [C1, C2, C3],
+                utf8_code_unit_to_hex(C1, C1H, C1L),
+                utf8_code_unit_to_hex(C2, C2H, C2L),
+                utf8_code_unit_to_hex(C3, C3H, C3L),
+                EncodedChars0 = ['%', C1H, C1L, '%', C2H, C2L, '%', C3H, C3L |
+                    EncodedRest]
+            ;
+                Codes = [C1, C2, C3, C4],
+                utf8_code_unit_to_hex(C1, C1H, C1L),
+                utf8_code_unit_to_hex(C2, C2H, C2L),
+                utf8_code_unit_to_hex(C3, C3H, C3L),
+                utf8_code_unit_to_hex(C4, C4H, C4L),
+                EncodedChars0 = ['%', C1H, C1L, '%', C2H, C2L, '%', C3H, C3L,
+                    '%', C4H, C4L | EncodedRest]
+            )
+        then
+            EncodedChars = EncodedChars0
+        else
+            unexpected($file, $pred, "Invalid UTF-8 code point")
+        )
     ),
     percent_encode_path_chars(CharRest, EncodedRest).
+
+:- pred utf8_code_unit_to_hex(int::in, char::uo, char::uo) is det.
+
+utf8_code_unit_to_hex(Utf8Code::in, High::uo, Low::uo) :-
+    char_copy(det_from_int(0'0 + (Utf8Code `unchecked_right_shift` 4)), High),
+    char_copy(det_from_int(0'0 + (Utf8Code /\ 0xf)), Low).
 
 :- pred char_copy(char, char).
 :- mode char_copy(di, uo) is det.

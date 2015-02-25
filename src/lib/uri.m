@@ -120,12 +120,9 @@ uri_to_string(url(Url))         = Url.
 
 :- func percent_encode_path(string) = string.
 
-percent_encode_path(Path) =
-    ( if percent_encode_path_chars(to_char_list(Path), EncodedChars) then
-        from_char_list(EncodedChars)
-    else
-        convert_local_path_func_error($pred, Path)
-    ).
+percent_encode_path(Path) = EncodedPath :-
+    percent_encode_path_chars(to_char_list(Path), EncodedChars),
+    EncodedPath = from_char_list(EncodedChars).
 
 %----------------------------------------------------------------------------%
 %
