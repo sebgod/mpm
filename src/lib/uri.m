@@ -39,7 +39,7 @@
     % uri_to_local_path(Uri, LocalPath):
     %
     % Succeeds iff `Uri' can be mapped to a local `LocalPath' and vice versa,
-    % e.g.: file:///etc/fstab  <->  /etc/fstab
+    % e.g.: file:///etc/fstab  <->  `/etc/fstab'
     %
     % NOTE: The `LocalPath' is OS-specific, see `dir.directory.separator'/0 in
     % dir.m.
@@ -68,8 +68,8 @@
     %
     % Returns the non-directory part of an `Uri'.
     %
-    % Trailing slashes are removed from PathName before splitting,
-    % if that doesn't change the meaning of PathName.
+    % Trailing slashes are removed from the URI path before splitting,
+    % if that doesn't change the meaning of the URI.
     %
 :- func basename(uri) = string is semidet.
 :- pred basename(uri::in, string::out) is semidet.
@@ -96,7 +96,7 @@
 :- type uri
     --->    local_path(string)  % an unencoded, OS-specific path
     ;       file(string)        % a valid file URI
-    ;       url(string).        % a valid http(s) URI
+    ;       url(string).        % a valid HTTP URI
 
 :- instance docable(uri) where [
     (func(to_doc/1) is uri_to_doc)
@@ -167,7 +167,9 @@ det_basename(Uri) = det_basename(det_uri_to_local_path(Uri)).
 :- instance uri(string) where [
     (to_uri(UriOrPath) =
         ( if
-            prefix(UriOrPath, "http:") ; prefix(UriOrPath, "https:")
+            find_first_match(
+                (pred(Schema::in) is semidet :- prefix(UriOrPath, Schema)),
+                ["https:", "http:"], _)
         then
             url(UriOrPath)
         else if
