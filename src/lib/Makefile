@@ -8,6 +8,9 @@ default: libmercury_mpm
 
 include ../Makefile.src_shared
 
+.PHONY: install
+install: libmercury_mpm.install
+
 .PHONY: clean
 clean: mercury_mpm.clean
 

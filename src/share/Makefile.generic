@@ -82,9 +82,13 @@ lib%.dep_vars: $(PKG_ROOT)/lib%.package
 
 # Build the local version of the library if provided by this package.
 # This is ensured by the meta_info.m rules, which depends on lib%.package
-lib%: lib%.dep_vars %.meta_info.m Mercury.modules
+lib%.install: lib%.dep_vars lib%
 	@echo MMC --install-prefix="$(lib$*_INSTALL_DIR)" --make lib$*.install
 	@$(MMC) --install-prefix="$(lib$*_INSTALL_DIR)" --make lib$*.install
+
+lib%: lib%.dep_vars %.meta_info.m Mercury.modules
+	@echo MMC --make lib$*
+	@$(MMC) --make lib$*
 
 # generating meta_info.m for package information available at compile time
 .PRECIOUS: %.meta_info.m

@@ -11,7 +11,7 @@ include $(PKG_ROOT)/Make.options
 include $(PKG_ROOT)/mpm.options
 
 .PHONY: install
-install: default install_share install_etc install_bin
+install: install_share install_etc install_lib install_bin
 
 .PHONY: install_share
 install_share: $(wildcard $(PKG_ROOT)/src/share/*)
@@ -24,6 +24,10 @@ install_etc: $(wildcard $(PKG_ROOT)/*.options)
 	@echo INSTALL $^
 	@$(MKDIR) -p "$(MPM_ETC_DIR)"
 	@$(INSTALL_COMPARE) -t "$(MPM_ETC_DIR)" --backup=existing $^
+
+.PHONY: install_lib
+install_lib:
+	@cd lib && $(MAKE) install
 
 .PHONY: install_bin
 install_bin:
