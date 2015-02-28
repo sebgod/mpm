@@ -52,7 +52,7 @@
 
 scm_repository_to_doc(Repository) =
     group([ format(Repository ^ scm_repo_kind)
-          , str("@")
+          , str("+")
           , uri_to_doc(Repository ^ scm_repo_uri)
           ]).
 
