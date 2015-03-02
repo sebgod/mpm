@@ -40,7 +40,7 @@
     %
 :- pred long_option(string::in, option::out) is semidet.
 
-:- pred option_default(string::in, option::out, option_data::out) is multi.
+:- pred option_default(option::out, option_data::out) is multi.
 
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
@@ -72,12 +72,12 @@ short_option(v, version).
 
 long_option(Name, Option) :- long_option_table(Name, Option).
 
-option_default(_Root, available, bool(no)).
-option_default(_Root, help, bool(no)).
-option_default(_Root, debug, bool(no)).
-option_default(Root, install_prefix, string(Root)).
-option_default(_Root, installed, bool(no)).
-option_default(_Root, version, bool(no)).
+option_default(available, bool(no)).
+option_default(help, bool(no)).
+option_default(debug, bool(no)).
+option_default(install_prefix, maybe_string(no)).
+option_default(installed, bool(no)).
+option_default(version, bool(no)).
 
 :- func option_to_doc(option) = doc.
 

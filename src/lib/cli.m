@@ -73,7 +73,7 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
     (
         ProgRootRes = ok(ProgRoot),
         OptionOps = option_ops_multi(short_option, long_option,
-            option_default(ProgRoot)),
+            option_default),
         process_options(OptionOps, Args, ProcessedArgs, Result),
         (
             Result = ok(OptionTable),
