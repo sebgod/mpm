@@ -82,6 +82,8 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
             lookup_bool_option(OptionTable, help, ShowHelp),
             lookup_bool_option(OptionTable, version, ShowVersion),
             lookup_bool_option(OptionTable, installed, Installed),
+            lookup_maybe_string_or_default_option(OptionTable, install_prefix,
+                ProgRoot, InstallPrefix),
             ( if
                 ShowVersion = no,
                 parse_command(Command, ProcessedArgs, CommandArgs)

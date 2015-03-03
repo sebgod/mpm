@@ -43,13 +43,27 @@
 :- pred option_default(option::out, option_data::out) is multi.
 
 %----------------------------------------------------------------------------%
+%
+% General helper functions for option parsing.
+%
+
+    % lookup_maybe_string_or_default_option(OptionTable, Option, DefaultValue,
+    %   Value):
+    %
+    % If the `Option' value is 'yes(Value0)', then `Value' unifies with
+    % `Value0', else with `DefaultValue'.
+    %
+:- pred lookup_maybe_string_or_default_option(option_table(Option)::in,
+    Option::in, string::in, string::out) is det.
+
+%----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
 
 :- import_module bool.
-:- import_module list.      % for `[|]'/2
-:- import_module maybe.     % used for 'install_prefix' option
+:- import_module list.  % for `[|]'/2
+:- import_module maybe. % used for `lookup_maybe_string_or_default_option'/4
 :- import_module pretty_printer.
 
 %----------------------------------------------------------------------------%
@@ -105,6 +119,19 @@ long_option_table("debug", debug).
 long_option_table("install-prefix", install_prefix).
 long_option_table("installed", installed).
 long_option_table("version", version).
+
+%----------------------------------------------------------------------------%
+
+lookup_maybe_string_or_default_option(OptionTable, Option, DefaultValue,
+    Value) :-
+    lookup_maybe_string_option(OptionTable, Option, MaybeValue),
+    (
+        MaybeValue = yes(Value0),
+        Value = Value0
+    ;
+        MaybeValue = no,
+        Value = DefaultValue
+    ).
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.option.
