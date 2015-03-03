@@ -34,12 +34,23 @@
 :- instance doc_ref(option).
 :- instance doc_ref_values(option).
 
+    % short_option(ShortChar, Option):
+    %
+    % Is true for all `Option' values for which a `ShortChar' can be used.
+    %
 :- pred short_option(char::in, option::out) is semidet.
 
     % long_option(Name, Option):
     %
+    % `Option' is the typed 'option' iff `Name' is a valid command line
+    % option.
+    %
 :- pred long_option(string::in, option::out) is semidet.
 
+    % option_default(Option, OptionData):
+    %
+    % Outputs the associated `OptionData' for each `Option'.
+    %
 :- pred option_default(option::out, option_data::out) is multi.
 
 %----------------------------------------------------------------------------%
