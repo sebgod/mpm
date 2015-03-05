@@ -17,7 +17,7 @@ MKDIR := mkdir
 MKTEMP := mktemp
 MMC := mmc
 MV := mv
-RM  := /bin/rm
+RM := /bin/rm
 # GNU sed is required
 SED := sed -r
 SLEEP := sleep
@@ -65,21 +65,24 @@ endif
 # end of public variable block
 #----------------------------------------------------------------------------#
 
-# Makefile self-test, use SELF_TEST=skip to skip self-testing
+# Makefile self-test, use SELF_TEST=skip-self-test to skip self-testing
 SELF_TEST := self-test
 # use CONTINUE_FAILED_TESTS=true to continue after a failed test
 CONTINUE_FAILED_TESTS := false
 
-ANSI_COLOUR   = \\033[$(1)\;$(2)m$(3)\\033[39\;22m
-ANSI_JUMP_COL = \\033[$(1)G
+# ANSI_COLOURISE(Colour,Attribute,Text)
+ANSI_COLOURISE   = \\033[$(1)\;$(2)m$(3)\\033[39\;22m
+# ANSI_JUMP_COLUMN(Column)
+ANSI_JUMP_COLUMN = \\033[$(1)G
 TEST_OK := "[succeeded]"
 TEST_NO := "[failed]"
 ifdef COLORTERM
-    TEST_JMP := $(call ANSI_JUMP_COL,6)
-    TEST_OK := -e $(TEST_JMP)$(call ANSI_COLOUR,32,1,"success")
-    TEST_NO := -e $(TEST_JMP)$(call ANSI_COLOUR,31,1,"failure")
+    TEST_JMP := $(call ANSI_JUMP_COLUMN,6)
+    TEST_OK := -e $(TEST_JMP)$(call ANSI_COLOURISE,32,1,"success")
+    TEST_NO := -e $(TEST_JMP)$(call ANSI_COLOURISE,31,1,"failure")
 endif
 
+# TEST_*(Variable,Actual,Expected)
 TEST_PREFIX = echo -n "TEST whether $(1)=$($(1)) is $(2) "
 TEST_RES  = echo $(TEST_OK) || (echo $(TEST_NO) && \
     $(CONTINUE_FAILED_TESTS))
@@ -105,5 +108,5 @@ self-test:
 	@$(call TEST_VER,GIT,"git version")
 	@$(call TEST_CC,OBJ_EXT,"$(CC)\'s object extension")
 
-.PHONY: skip
-skip:
+.PHONY: skip-self-test
+skip-self-test:
