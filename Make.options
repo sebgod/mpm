@@ -97,12 +97,15 @@ TEST_CC = $(TEST_PREFIX) && \
         $(RM) "$$F.c" && $(RM) "$$F$($(1))"  && \
         $(TEST_RES)
 
+#TEST_LOOP(Test,Actual,Expected)
+TEST_LOOP = $(foreach VAR,$(2),( $(call $(1),$(VAR),$(3)) ) && ) true
+
 TEST_GNU := CAT CP DATE DIFF ECHO GREP INSTALL MAKE MV RM SED SORT SLEEP
 
 .PHONY: self-test
 self-test:
 	@$(call TEST_VER,MMC,Mercury)
-	@$(foreach VAR,$(TEST_GNU),( $(call TEST_VER,$(VAR),GNU) ) && ) true
+	@$(call TEST_LOOP,TEST_VER,$(TEST_GNU),GNU)
 	@$(call TEST_VER,MKTEMP,"mktemp")
 	@$(call TEST_VER,CURL,"libcurl")
 	@$(call TEST_VER,GIT,"git version")
