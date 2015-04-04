@@ -38,7 +38,7 @@
 
 :- implementation.
 
-:- import_module mercury_mpm.formatting. % for `error_to_doc'/1
+:- import_module mercury_mpm.formatting.    % for `error_to_doc'/1
 :- import_module mercury_mpm.package_file.
 :- import_module mercury_mpm.resource.      % e.g. for `format_err_res'/4
 :- import_module mercury_mpm.scm_repository.
@@ -48,7 +48,7 @@
 :- import_module dir.
 :- import_module list.
 :- import_module maybe.
-:- import_module pair.  % used for repo-dir
+:- import_module pair.   % used for repo-dir
 :- import_module string.
 
 %----------------------------------------------------------------------------%
