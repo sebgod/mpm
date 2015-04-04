@@ -149,11 +149,9 @@ parse_loop(!PackageFile, MaybeError, !IO) :-
             !:PackageFile = !.PackageFile ^ pkg_file_package ^ pkg_deps :=
                 [ { Dependency ^ dep_name,
                     Dependency ^ dep_pattern,
-                    univ((func(Name, _Pattern : string) =
-                            { Name
-                            , invalid_package_version
-                            , []
-                            } : package))
+                    % Initially the dependency is marked as invalid,
+                    % since we will replace this value in a second stage
+                    univ(invalid_dependency)
                   }
                 | !.PackageFile ^ pkg_file_package ^ pkg_deps
                 ]
@@ -177,6 +175,11 @@ parse_loop(!PackageFile, MaybeError, !IO) :-
         ReadTerm = eof,
         MaybeError = no
     ).
+
+:- func invalid_dependency(string, string) = package.
+
+invalid_dependency(Name, Pattern) =
+    { format("%s@%s", [s(Name), s(Pattern)]), invalid_package_version, [] }.
 
 %----------------------------------------------------------------------------%
 
