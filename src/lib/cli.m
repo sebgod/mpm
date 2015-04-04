@@ -108,7 +108,7 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
                         ;
                             Installed = no,
                             Available = yes,
-                            Action = list_current_container_packages
+                            Action = list_available_packages
                         ;
                             Installed = no,
                             Available = no,
@@ -171,7 +171,7 @@ list_installed_packages(Doc, !IO) :-
 :- pred list_available_packages : cli_pred `with_inst` cli_pred.
 
 list_available_packages(Doc, !IO) :-
-    Doc = make_doc(str("listing installed packages")).
+    Doc = make_doc(str("listing available packages")).
 
 :- pred build_current_container_packages : cli_pred `with_inst` cli_pred.
 
