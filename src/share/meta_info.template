@@ -11,6 +11,16 @@
 :- interface.
 
 %----------------------------------------------------------------------------%
+%
+% Types representing packages.
+%
+% As long as these types are not in the standard library, they have to
+% be public, otherwise all libraries would have to depend on the
+% `mercury_mpm' library, which is not what we want.
+%
+% These should always be in sync with the mercury_mpm.package module defined
+% in package.m
+%
 
 :- import_module pair.
 :- import_module list.
@@ -26,7 +36,13 @@
     == list(<MODULE>_dependency).
 
 :- type <MODULE>_dependency
-    ==  {string, string, univ}.
+    ==  { string
+        , <MODULE>_dependency_pattern
+        , univ
+        }.
+
+:- type <MODULE>_dependency_pattern
+    == string.
 
 :- type <MODULE>_version
     ==  {{int, int, int, string}, string}.
@@ -116,7 +132,6 @@ src_dir = "<SRC_DIR>".
     %
     % `Version' is a 'semver' (http://semver.org) compatible version tuple
     % which will be used for dependency resolution.
-    %
     %
 :- func version = <MODULE>_version.
 

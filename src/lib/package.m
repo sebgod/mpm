@@ -40,13 +40,20 @@
 
 :- type dependencies == list(dependency).
 
-:- type dependency_func == (func(string, string) = package).
-
     % The dependent `package' reference is stored in a `univ' since we cannot
     % use recursive type aliases.
-    % It has the runtime type `dependency_func'.
+    % It has the runtime type `dependency_func' or `package'.
     %
-:- type dependency == {string, string, univ}.
+:- type dependency == {string, dependency_pattern, univ}.
+
+    % This higher-order function type is used for resolving package
+    % dependencies dynamically.
+    %
+:- type dependency_func == (func(string, dependency_pattern) = package).
+
+    % A dependency pattern, e.g. 1.2.* or 1.2.10-1.3.*
+    %
+:- type dependency_pattern == string.
 
 %----------------------------------------------------------------------------%
 %
