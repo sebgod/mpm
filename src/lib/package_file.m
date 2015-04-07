@@ -79,7 +79,7 @@
 :- type dependency_rep
     --->    dep(
                 dep_name    :: string,
-                dep_pattern :: string
+                dep_range   :: string
             ).
 
 :- type repository_rep
@@ -148,7 +148,7 @@ parse_loop(!PackageFile, MaybeError, !IO) :-
         then
             !:PackageFile = !.PackageFile ^ pkg_file_package ^ pkg_deps :=
                 [ { Dependency ^ dep_name,
-                    Dependency ^ dep_pattern,
+                    det_string_to_range(Dependency ^ dep_range),
                     % Initially the dependency is marked as invalid,
                     % since we will replace this value in a second stage
                     univ(invalid_dependency)
@@ -178,8 +178,8 @@ parse_loop(!PackageFile, MaybeError, !IO) :-
 
 :- func invalid_dependency : dependency_func.
 
-invalid_dependency(Name, Pattern) =
-    { format("%s@%s", [s(Name), s(Pattern)]), invalid_package_version, [] }.
+invalid_dependency(Name, Range) =
+    { format("%s@%s", [s(Name), s(Range)]), invalid_package_version, [] }.
 
 %----------------------------------------------------------------------------%
 

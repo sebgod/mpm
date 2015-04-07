@@ -44,16 +44,12 @@
     % use recursive type aliases.
     % It has the runtime type `dependency_func' or `package'.
     %
-:- type dependency == {string, dependency_pattern, univ}.
+:- type dependency == {string, range, univ}.
 
     % This higher-order function type is used for resolving package
     % dependencies dynamically.
     %
-:- type dependency_func == (func(string, dependency_pattern) = package).
-
-    % A dependency pattern, e.g. 1.2.* or 1.2.10-1.3.*
-    %
-:- type dependency_pattern == string.
+:- type dependency_func == (func(string, range) = package).
 
 %----------------------------------------------------------------------------%
 %
@@ -88,8 +84,8 @@
     % Access dependency name
 :- func dependency ^ dep_name = string.
 
-    % Access dependency version pattern
-:- func dependency ^ dep_pattern = string.
+    % Access dependency version range
+:- func dependency ^ dep_range = range.
 
     % Access dependent package
     %
@@ -135,12 +131,12 @@
 
 {Name, _, _} ^ dep_name = Name.
 
-{_, Pattern, _} ^ dep_pattern = Pattern.
+{_, Range, _} ^ dep_range = Range.
 
-{Name, Pattern, Univ} ^ dep_package = Package :-
+{Name, Range, Univ} ^ dep_package = Package :-
     (
         univ_to_type(Univ, Fun) ->
-        Package = Fun(Name, Pattern)
+        Package = Fun(Name, Range)
     ;
         det_univ_to_type(Univ, Package)
     ).

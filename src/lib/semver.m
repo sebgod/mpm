@@ -47,6 +47,19 @@
 :- func invalid_package_version = (version::uo) is det.
 
 %----------------------------------------------------------------------------%
+
+    % A version range, e.g. 1.2.* or 1.2.10-1.3.*
+    %
+:- type range == string.
+
+    % det_string_to_range(RangeString) = Range:
+    %
+    % Builds `Range' by parsing the `RangeString' or throws an exception
+    % iff `RangeString' is not a valid range.
+    %
+:- func det_string_to_range(string) = range.
+
+%----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
 :- implementation.
@@ -112,6 +125,11 @@ version_to_doc(Version @ {{Major, _Minor, _Patch, _Pre}, Build}) =
 %----------------------------------------------------------------------------%
 
 invalid_package_version = {{-1,0,0,""},"<invalid package>"}.
+
+%----------------------------------------------------------------------------%
+
+    % TODO: Do real parsing and define a range representation.
+det_string_to_range(RangeString) = RangeString.
 
 %----------------------------------------------------------------------------%
 :- end_module mercury_mpm.semver.

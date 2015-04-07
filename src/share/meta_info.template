@@ -37,11 +37,11 @@
 
 :- type <MODULE>_dependency
     ==  { string
-        , <MODULE>_dependency_pattern
+        , <MODULE>_dependency_range
         , univ
         }.
 
-:- type <MODULE>_dependency_pattern
+:- type <MODULE>_dependency_range
     == string.
 
 :- type <MODULE>_version
@@ -66,13 +66,13 @@
     %
 :- func contributors = list(pair(string)).
 
-    % dependencies = [{Name, Version, Dependency} | _]:
+    % dependencies = [{Name, Range, Dependency} | _]:
     %
     % Dependencies of this module, where
     %
     % `Name' is the name of the dependency (and of the package file)
     %
-    % `Version' is the loose version pattern it has to comply
+    % `Range' is the version range it has to comply
     %
     % `Dependency' is a weakly typed reference to the dependent module,
     % it must cast to the `mercury_mpm.package' type
