@@ -176,7 +176,7 @@ parse_loop(!PackageFile, MaybeError, !IO) :-
         MaybeError = no
     ).
 
-:- func invalid_dependency(string, string) = package.
+:- func invalid_dependency : dependency_func.
 
 invalid_dependency(Name, Pattern) =
     { format("%s@%s", [s(Name), s(Pattern)]), invalid_package_version, [] }.

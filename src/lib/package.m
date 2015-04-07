@@ -40,8 +40,11 @@
 
 :- type dependencies == list(dependency).
 
+:- type dependency_func == (func(string, string) = package).
+
     % The dependent `package' reference is stored in a `univ' since we cannot
     % use recursive type aliases.
+    % It has the runtime type `dependency_func'.
     %
 :- type dependency == {string, string, univ}.
 
