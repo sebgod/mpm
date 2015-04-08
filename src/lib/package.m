@@ -20,6 +20,8 @@
 :- interface.
 
 :- import_module mercury_mpm.semver.
+:- import_module mercury_mpm.semver.version.
+:- import_module mercury_mpm.semver.range.
 
 :- import_module list.
 :- import_module pretty_printer.

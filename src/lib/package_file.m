@@ -61,6 +61,8 @@
 
 :- import_module mercury_mpm.resource.   % e.g. for `format_err_res'/4
 :- import_module mercury_mpm.semver.
+:- import_module mercury_mpm.semver.version.
+:- import_module mercury_mpm.semver.range.
 
 :- import_module dir.       % for `det_basename'/1
 :- import_module list.
