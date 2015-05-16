@@ -7,6 +7,8 @@ mpm_packages
 Mercury.modules
 *.jar
 *.exe
+*.lib
+*.obj
 *.a
 *.so
 *.dylib

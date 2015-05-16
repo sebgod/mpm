@@ -25,9 +25,15 @@ SORT := /bin/sort
 
 # composed common variables
 CC       := $(shell $(MMC) --output-cc)
-# if you change CC on the command line you have to change CC_TYPE as well
-OBJ_EXT  := $(shell $(MMC) --output-cc-type | sed -r -n -e "s/([^_]+).*/\1/p")
-CC_TYPE  := $(shell $(MMC) --output-cc-type)
+
+CC_TYPE_FUNC = \
+	case $(1) in \
+		clang*) echo clang;; \
+		cl*)    echo msvc;;  \
+		*)		echo gcc;;   \
+	esac
+CC_TYPE := $(shell $(call CC_TYPE_FUNC,$(CC)))
+
 DEL_DIR  := $(RM) -fR
 DEL_FILE := $(RM) -f
 # If all you want is to look for a string in a stream,
