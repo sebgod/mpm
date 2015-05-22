@@ -1,7 +1,16 @@
 # vim: ft=make tw=78 ts=4 sw=4 noet
 
+MPM := mpm
+DEFAULT_TARGET := bootstrap_install
+INSTALL_TARGET := $(DEFAULT_TARGET)
+
+ifeq ($(firstword $(shell $(MPM) --version 2>&1)),mpm:)
+    DEFAULT_TARGET := src
+    INSTALL_TARGET := mpm_install
+endif
+
 .PHONY: default
-default: src
+default: $(DEFAULT_TARGET)
 
 include Make.options
 
@@ -10,7 +19,14 @@ src: $(SELF_TEST)
 	cd src && $(MAKE) default
 
 .PHONY: install
-install: $(SELF_TEST)
+install: $(INSTALL_TARGET)
+
+.PHONY:
+mpm_install:
+	$(MPM) install
+
+.PHONY: bootstrap_install
+bootstrap_install: $(SELF_TEST)
 	cd src && $(MAKE) install
 
 .PHONY: runtests
