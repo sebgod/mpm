@@ -1,0 +1,3 @@
+[submodule "src/mercury-slre"]
+	path = src/mercury-slre
+	url = https://github.com/sebgod/mercury-slre

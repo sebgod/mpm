@@ -2,16 +2,16 @@
 
 PKG_ROOT :=..
 
+MERCURY_SRC_DIRS :=mercury-slre lib bin
+
 .PHONY: default
-default:
-	cd lib && $(MAKE) default
-	cd bin && $(MAKE) default
+default: $(patsubst %,default_%,$(MERCURY_SRC_DIRS))
 
 include $(PKG_ROOT)/Make.options
 include $(PKG_ROOT)/mpm.options
 
 .PHONY: install
-install: install_share install_etc install_lib install_bin
+install: $(patsubst %,install_%,share etc lib bin)
 
 .PHONY: install_share
 install_share: $(wildcard $(PKG_ROOT)/src/share/*)
@@ -25,23 +25,24 @@ install_etc: $(wildcard $(PKG_ROOT)/*.options)
 	@$(MKDIR) -p "$(MPM_ETC_DIR)"
 	@$(INSTALL_COMPARE) -t "$(MPM_ETC_DIR)" --backup=existing $^
 
-.PHONY: install_lib
-install_lib:
-	@cd lib && $(MAKE) install
-
-.PHONY: install_bin
-install_bin:
-	@cd bin && $(MAKE) install
-
 .PHONY: clean
-clean:
-	cd lib && $(MAKE) clean
-	cd bin && $(MAKE) clean
+clean: $(patsubst %,clean_%,$(MERCURY_SRC_DIRS))
 
 .PHONY: distclean
 distclean: realclean
 
 .PHONY: realclean
-realclean:
-	cd lib && $(MAKE) realclean
-	cd bin && $(MAKE) realclean
+realclean: $(patsubst %,realclean_%,$(MERCURY_SRC_DIRS))
+
+default_%: %
+	cd "$*" && $(MAKE) default
+
+install_%: %
+	cd "$*" && $(MAKE) install
+
+clean_%: %
+	cd "$*" && $(MAKE) clean
+
+realclean_%: %
+	cd "$*" && $(MAKE) realclean
+
