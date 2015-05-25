@@ -130,7 +130,8 @@ cli_main(ProgName, ProgPackage, Args, !IO) :-
             then
                 Action = show_package_tree(ProgPackage)
             else
-                Action = show_proc_usage(ShowHelp, ProgExe)
+                Action = show_proc_usage(ShowHelp, ProgExe),
+                io.set_exit_status(2, !IO)
             )
         ;
             Result = error(ErrorMessage),
