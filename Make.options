@@ -110,8 +110,8 @@ TEST_GNU := CAT CP DATE DIFF ECHO GREP INSTALL MAKE MV RM SED SORT SLEEP
 
 .PHONY: self-test
 self-test:
-	@$(call TEST_VER,MMC,Mercury)
-	@$(call TEST_LOOP,TEST_VER,$(TEST_GNU),GNU)
+	@$(call TEST_VER,MMC,"Mercury")
+	@$(call TEST_LOOP,TEST_VER,$(TEST_GNU),"GNU")
 	@$(call TEST_VER,MKTEMP,"mktemp")
 	@$(call TEST_VER,CURL,"libcurl")
 	@$(call TEST_VER,GIT,"git version")
