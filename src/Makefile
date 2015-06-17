@@ -2,7 +2,7 @@
 
 PKG_ROOT :=..
 
-MERCURY_SRC_DIRS :=mercury-slre lib bin
+MERCURY_SRC_DIRS :=lib bin
 
 .PHONY: default
 default: $(patsubst %,default_%,$(MERCURY_SRC_DIRS))
