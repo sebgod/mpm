@@ -150,7 +150,7 @@ parse_loop(!PackageFile, MaybeError, !IO) :-
         then
             !:PackageFile = !.PackageFile ^ pkg_file_package ^ pkg_deps :=
                 [ { Dependency ^ dep_name,
-                    det_string_to_range(Dependency ^ dep_range),
+                    univ(det_string_to_range(Dependency ^ dep_range)),
                     % Initially the dependency is marked as invalid,
                     % since we will replace this value in a second stage
                     univ(invalid_dependency)
@@ -181,7 +181,8 @@ parse_loop(!PackageFile, MaybeError, !IO) :-
 :- func invalid_dependency : dependency_func.
 
 invalid_dependency(Name, Range) =
-    { format("%s@%s", [s(Name), s(Range)]), invalid_package_version, [] }.
+    { format("%s@%s", [s(Name), s("<range printing NYI>")]),
+        invalid_package_version, [] }.
 
 %----------------------------------------------------------------------------%
 

@@ -37,7 +37,7 @@
 
 :- type <MODULE>_dependency
     ==  { string
-        , <MODULE>_dependency_range
+        , univ
         , univ
         }.
 

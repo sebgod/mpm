@@ -42,16 +42,21 @@
 
 :- type dependencies == list(dependency).
 
-    % The dependent `package' reference is stored in a `univ' since we cannot
-    % use recursive type aliases.
-    % It has the runtime type `dependency_func' or `package'.
+    % dependency(Name, Range, Package):
     %
-:- type dependency == {string, range, univ}.
+    % The semver `Range' has the runtime type `string' or `range'.
+    %
+    % The dependent `Package' reference has the runtime type
+    % `dependency_func' or `package'.
+    %
+    % NOTE: We use `univ' since we cannot use recursive type aliases.
+    %
+:- type dependency == {string, univ, univ}.
 
     % This higher-order function type is used for resolving package
     % dependencies dynamically.
     %
-:- type dependency_func == (func(string, range) = package).
+:- type dependency_func == (func(string, univ) = package).
 
 %----------------------------------------------------------------------------%
 %
@@ -116,6 +121,9 @@
 :- import_module list.
 
 %----------------------------------------------------------------------------%
+%
+% Package access functions
+%
 
 {Name, _, _} ^ pkg_name = Name.
 
@@ -130,17 +138,25 @@
 'pkg_deps :='({Name, Version, _}, Deps) = {Name, Version, Deps}.
 
 %----------------------------------------------------------------------------%
+%
+% Dependency access functions
+%
 
 {Name, _, _} ^ dep_name = Name.
 
-{_, Range, _} ^ dep_range = Range.
+{_, RangeUniv, _} ^ dep_range = Range :-
+    ( if univ_to_type(RangeUniv, RangeString) then
+        Range = det_string_to_range(RangeString)
+    else
+        det_univ_to_type(RangeUniv, Range)
+    ).
 
-{Name, Range, Univ} ^ dep_package = Package :-
-    (
-        univ_to_type(Univ, Fun) ->
-        Package = Fun(Name, Range)
-    ;
-        det_univ_to_type(Univ, Package)
+Dep @ {Name, _RangeUniv, PackageUniv} ^ dep_package = Package :-
+    Range = Dep ^ dep_range,
+    ( if univ_to_type(PackageUniv, PackageResolveFunction) then
+        Package = PackageResolveFunction(Name, Range)
+    else
+        det_univ_to_type(PackageUniv, Package)
     ).
 
 %----------------------------------------------------------------------------%

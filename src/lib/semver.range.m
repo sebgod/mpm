@@ -14,6 +14,7 @@
 
 :- interface.
 
+:- import_module mercury_mpm.dcg_parsing.
 :- import_module mercury_mpm.semver.
 :- import_module mercury_mpm.semver.version.
 
@@ -69,7 +70,6 @@
 
 :- implementation.
 
-:- import_module mercury_mpm.dcg_parsing.
 :- import_module mercury_mpm.formatting.
 
 :- import_module char.
