@@ -42,6 +42,21 @@
 :- mode percent_encode_path_chars(mdi, muo) is det.
 :- mode percent_encode_path_chars(in, out) is det.
 
+:- pred ws : parser_pred.
+:- mode ws(di, uo) is semidet.
+:- mode ws(mdi, muo) is semidet.
+:- mode ws(in, out) is semidet.
+
+:- pred ws_char : parser_pred.
+:- mode ws_char(di, uo) is semidet.
+:- mode ws_char(mdi, muo) is semidet.
+:- mode ws_char(in, out) is semidet.
+
+:- pred ws_opt : parser_pred.
+:- mode ws_opt(di, uo) is semidet.
+:- mode ws_opt(mdi, muo) is semidet.
+:- mode ws_opt(in, out) is semidet.
+
 %----------------------------------------------------------------------------%
 %----------------------------------------------------------------------------%
 
@@ -49,6 +64,7 @@
 
 :- import_module int.
 :- import_module require.
+:- import_module string.
 
 %----------------------------------------------------------------------------%
 
@@ -163,6 +179,19 @@ char_copy(Char::di, Char::uo).
 char_copy(Char::in, Unique::uo) :-
     Unique = unsafe_promise_unique(det_from_int(to_int(Char) + 0)).
 
-%----------------------------------------------------------------------------%
-:- end_module mercury_mpm.dcg_parsing.
+ws_char -->
+    [Char], { char.is_whitespace(Char) }.
+
+ws_opt -->
+    ( if
+        [Char],
+        { char.is_whitespace(Char) }
+    then
+        ws_opt
+    else
+        { true }
+    ).
+
+ws --> ws_char, ws_opt.
+
 %----------------------------------------------------------------------------%

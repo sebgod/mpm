@@ -14,7 +14,9 @@
 
 :- interface.
 
-:- import_module pretty_printer.
+:- import_module mercury_mpm.dcg_parsing.
+
+:- import_module pretty_printer. % for the doc type
 
 %----------------------------------------------------------------------------%
 
@@ -31,6 +33,11 @@
 
 :- func version_to_doc(version) = doc.
 
+:- pred parse_version : parser1_pred(version).
+:- mode parse_version(uo, di, muo) is semidet.
+:- mode parse_version(uo, mdi, muo) is semidet.
+:- mode parse_version(uo, in, out) is semidet.
+
 %----------------------------------------------------------------------------%
 %
 % Special version constants used by the system:
@@ -44,6 +51,8 @@
 % the name of the special constant is stored in the `Build' (last) part.
 %
 
+:- func any_version = (version::uo) is det.
+
 :- func invalid_package_version = (version::uo) is det.
 
 %----------------------------------------------------------------------------%
@@ -51,7 +60,6 @@
 
 :- implementation.
 
-:- import_module mercury_mpm.dcg_parsing.
 :- import_module mercury_mpm.formatting.
 
 :- import_module list.
@@ -89,11 +97,6 @@ string_to_version(VersionString, Version) :-
         parse_version(Version, Chars, [])
     ).
 
-:- pred parse_version : parser1_pred(version).
-:- mode parse_version(uo, di, muo) is semidet.
-:- mode parse_version(uo, mdi, muo) is semidet.
-:- mode parse_version(uo, in, out) is semidet.
-
 parse_version({{Major, Minor, Patch, Pre}, Build}) -->
     dec_unsigned_int(Major), ['.'],
     dec_unsigned_int(Minor), ['.'],
@@ -111,6 +114,7 @@ version_to_doc(Version @ {{Major, _Minor, _Patch, _Pre}, Build}) =
 
 %----------------------------------------------------------------------------%
 
+any_version = {{-1,0,0,""},"*"}.
 invalid_package_version = {{-1,0,0,""},"<invalid package>"}.
 
 %----------------------------------------------------------------------------%
